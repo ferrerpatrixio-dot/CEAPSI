@@ -1,16 +1,198 @@
 {
-  "r2": 0.881,
-  "mape": 16.3,
-  "rmse": 745000,
-  "mae": null,
-  "sesgo_medio": -45000,
+  "r2": 0.8024999044637833,
+  "mape": 21.784575891965655,
+  "rmse": 896957.1424217089,
+  "mae": 769510.3958333334,
+  "sesgo_medio": -208200.74305555556,
   "training_info": {
-    "fecha_min_train": "Abr 2023",
-    "fecha_max_train": "Abr 2026",
+    "fecha_min_train": "2023-04-01",
+    "fecha_max_train": "2026-04-30",
     "n_train": 2761,
-    "fecha_min_test": "May 2 2026",
-    "fecha_max_test": "May 15 2026",
+    "fecha_min_test": "2026-05-02",
+    "fecha_max_test": "2026-05-15",
     "n_test": 36,
-    "n_opt": 172
-  }
+    "n_opt": 214
+  },
+  "pred_vs_real": [
+    {
+      "real": 2016000.0,
+      "pred": 3064696.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 2061000.0,
+      "pred": 3662841.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 1614000.0,
+      "pred": 2093071.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 7286000.0,
+      "pred": 6501216.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 5125000.0,
+      "pred": 4269109.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 4231000.0,
+      "pred": 4096451.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 6710000.0,
+      "pred": 6571036.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 7924000.0,
+      "pred": 6456114.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 5413000.0,
+      "pred": 4292206.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 7388000.0,
+      "pred": 6708362.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 6945000.0,
+      "pred": 6644916.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 4659000.0,
+      "pred": 4174974.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 7899000.0,
+      "pred": 6574278.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 8138000.0,
+      "pred": 6836001.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 3862000.0,
+      "pred": 4338745.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 5543000.0,
+      "pred": 5318412.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 4451000.0,
+      "pred": 5192078.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 3179000.0,
+      "pred": 2787394.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 2395000.0,
+      "pred": 3671385.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 2905000.0,
+      "pred": 4214767.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 928000.0,
+      "pred": 2401173.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 5522000.0,
+      "pred": 5912882.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 5430000.0,
+      "pred": 4387311.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 4186000.0,
+      "pred": 3631091.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 5489000.0,
+      "pred": 5799530.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 7709000.0,
+      "pred": 6046504.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 4144000.0,
+      "pred": 3801981.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 7618000.0,
+      "pred": 6190450.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 6558000.0,
+      "pred": 6030196.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 3553000.0,
+      "pred": 3768012.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 6887000.0,
+      "pred": 6107100.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 7318000.0,
+      "pred": 6307529.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 4273000.0,
+      "pred": 3779612.0,
+      "tipo": "Teleconsulta"
+    },
+    {
+      "real": 5305000.0,
+      "pred": 4931120.0,
+      "tipo": "Adultos"
+    },
+    {
+      "real": 5382000.0,
+      "pred": 5207838.0,
+      "tipo": "Infantil"
+    },
+    {
+      "real": 2007000.0,
+      "pred": 2787394.0,
+      "tipo": "Teleconsulta"
+    }
+  ]
 }
