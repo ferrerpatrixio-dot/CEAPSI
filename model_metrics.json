@@ -1,13 +1,13 @@
 {
-  "r2": 0.8024999044637833,
-  "mape": 21.784575891965655,
-  "rmse": 896957.1424217089,
-  "mae": 769510.3958333334,
-  "sesgo_medio": -208200.74305555556,
+  "r2": 0.8549511561470056,
+  "mape": 16.4504646577363,
+  "rmse": 768679.2774049669,
+  "mae": 667630.1605701445,
+  "sesgo_medio": -358817.69400172756,
   "training_info": {
     "fecha_min_train": "2023-04-01",
     "fecha_max_train": "2026-04-30",
-    "n_train": 2761,
+    "n_train": 2787,
     "fecha_min_test": "2026-05-02",
     "fecha_max_test": "2026-05-15",
     "n_test": 36,
@@ -16,17 +16,17 @@
   "pred_vs_real": [
     {
       "real": 2016000.0,
-      "pred": 3064696.0,
+      "pred": 2401879.0,
       "tipo": "Adultos"
     },
     {
       "real": 2061000.0,
-      "pred": 3662841.0,
+      "pred": 2865806.0,
       "tipo": "Infantil"
     },
     {
       "real": 1614000.0,
-      "pred": 2093071.0,
+      "pred": 1770691.0,
       "tipo": "Teleconsulta"
     },
     {
@@ -46,77 +46,77 @@
     },
     {
       "real": 6710000.0,
-      "pred": 6571036.0,
+      "pred": 6710990.0,
       "tipo": "Adultos"
     },
     {
       "real": 7924000.0,
-      "pred": 6456114.0,
+      "pred": 6624775.0,
       "tipo": "Infantil"
     },
     {
       "real": 5413000.0,
-      "pred": 4292206.0,
+      "pred": 4430530.0,
       "tipo": "Teleconsulta"
     },
     {
       "real": 7388000.0,
-      "pred": 6708362.0,
+      "pred": 6605850.0,
       "tipo": "Adultos"
     },
     {
       "real": 6945000.0,
-      "pred": 6644916.0,
+      "pred": 6560358.0,
       "tipo": "Infantil"
     },
     {
       "real": 4659000.0,
-      "pred": 4174974.0,
+      "pred": 4161431.0,
       "tipo": "Teleconsulta"
     },
     {
       "real": 7899000.0,
-      "pred": 6574278.0,
+      "pred": 6710520.0,
       "tipo": "Adultos"
     },
     {
       "real": 8138000.0,
-      "pred": 6836001.0,
+      "pred": 7033962.0,
       "tipo": "Infantil"
     },
     {
       "real": 3862000.0,
-      "pred": 4338745.0,
+      "pred": 4473708.0,
       "tipo": "Teleconsulta"
     },
     {
       "real": 5543000.0,
-      "pred": 5318412.0,
+      "pred": 4696470.0,
       "tipo": "Adultos"
     },
     {
       "real": 4451000.0,
-      "pred": 5192078.0,
+      "pred": 4466359.0,
       "tipo": "Infantil"
     },
     {
       "real": 3179000.0,
-      "pred": 2787394.0,
+      "pred": 2536401.0,
       "tipo": "Teleconsulta"
     },
     {
       "real": 2395000.0,
-      "pred": 3671385.0,
+      "pred": 3039034.0,
       "tipo": "Adultos"
     },
     {
       "real": 2905000.0,
-      "pred": 4214767.0,
+      "pred": 3034286.0,
       "tipo": "Infantil"
     },
     {
       "real": 928000.0,
-      "pred": 2401173.0,
+      "pred": 2069929.0,
       "tipo": "Teleconsulta"
     },
     {
@@ -136,62 +136,62 @@
     },
     {
       "real": 5489000.0,
-      "pred": 5799530.0,
+      "pred": 6035190.0,
       "tipo": "Adultos"
     },
     {
       "real": 7709000.0,
-      "pred": 6046504.0,
+      "pred": 6281211.0,
       "tipo": "Infantil"
     },
     {
       "real": 4144000.0,
-      "pred": 3801981.0,
+      "pred": 3821808.0,
       "tipo": "Teleconsulta"
     },
     {
       "real": 7618000.0,
-      "pred": 6190450.0,
+      "pred": 6147202.0,
       "tipo": "Adultos"
     },
     {
       "real": 6558000.0,
-      "pred": 6030196.0,
+      "pred": 6005018.0,
       "tipo": "Infantil"
     },
     {
       "real": 3553000.0,
-      "pred": 3768012.0,
+      "pred": 3754470.0,
       "tipo": "Teleconsulta"
     },
     {
       "real": 6887000.0,
-      "pred": 6107100.0,
+      "pred": 6195246.0,
       "tipo": "Adultos"
     },
     {
       "real": 7318000.0,
-      "pred": 6307529.0,
+      "pred": 6495328.0,
       "tipo": "Infantil"
     },
     {
       "real": 4273000.0,
-      "pred": 3779612.0,
+      "pred": 3908338.0,
       "tipo": "Teleconsulta"
     },
     {
       "real": 5305000.0,
-      "pred": 4931120.0,
+      "pred": 4471370.0,
       "tipo": "Adultos"
     },
     {
       "real": 5382000.0,
-      "pred": 5207838.0,
+      "pred": 4492943.0,
       "tipo": "Infantil"
     },
     {
       "real": 2007000.0,
-      "pred": 2787394.0,
+      "pred": 2536401.0,
       "tipo": "Teleconsulta"
     }
   ]
