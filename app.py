@@ -220,15 +220,22 @@ st.markdown("""
 st.title("🏥 CEAPSI — Predicción de Ventas")
 st.caption("Modelo XGBoost v5 · Consultas Adultos · Infantil · Teleconsulta · Las Condes")
 
-st.markdown("""
+try:
+    with open("version.json", encoding="utf-8") as _vf:
+        _ver = json.load(_vf)
+    _ver_txt = f"· actualizado {_ver.get('timestamp','—')} · commit {_ver.get('commit','—')}"
+except Exception:
+    _ver_txt = ""
+
+st.markdown(f"""
 <style>
-.footer { position:fixed; bottom:0; left:0; width:100%;
+.footer {{ position:fixed; bottom:0; left:0; width:100%;
           background:#f1f5f9; border-top:1px solid #e2e8f0;
           text-align:center; padding:8px 0;
-          font-size:.78rem; color:#64748b; z-index:999; }
-.footer a { color:#3b82f6; text-decoration:none; }
+          font-size:.78rem; color:#64748b; z-index:999; }}
+.footer a {{ color:#3b82f6; text-decoration:none; }}
 </style>
-<div class="footer">Desarrollado por <a href="https://aiprocess.cl" target="_blank">AIProcess.cl</a> · 2026</div>
+<div class="footer">Desarrollado por <a href="https://aiprocess.cl" target="_blank">AIProcess.cl</a> · 2026 {_ver_txt}</div>
 """, unsafe_allow_html=True)
 
 tab1, tab2, tab3, tab4 = st.tabs(["📋 Modelo", "📊 Datos", "📈 Métricas", "🔮 Predecir mes"])
