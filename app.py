@@ -691,8 +691,13 @@ with tab4:
         elif es_presente:
             st.info(f"📅 Estás prediciendo el mes en curso ({MESES_ES[mes_sel]} {año_sel}).")
 
-        # Fuente de lags: historial completo si el mes es pasado/presente
-        lag_fuente = df_train if (es_pasado or es_presente) and df_train is not None else None
+        # Fuente de lags: entrenamiento + validacion combinados
+        # Así los lags de meses recientes usan datos reales (no PROM_HIST)
+        if (es_pasado or es_presente) and df_train is not None:
+            lag_fuente = (pd.concat([df_train, df_valid], ignore_index=True)
+                          if df_valid is not None else df_train)
+        else:
+            lag_fuente = None
 
         with st.spinner(f"Calculando {MESES_ES[mes_sel]} {año_sel}…"):
             df_pred = predecir_mes(int(mes_sel), int(año_sel), df_historico=lag_fuente)
