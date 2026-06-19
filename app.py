@@ -26,6 +26,57 @@ COLOR_TIPOS = {"Adultos": "#3b82f6", "Infantil": "#10b981", "Teleconsulta": "#f5
 MESES_ES    = {1:"Enero",2:"Febrero",3:"Marzo",4:"Abril",5:"Mayo",6:"Junio",
                7:"Julio",8:"Agosto",9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"}
 
+# ════════════════════════════════════════════════════════════════════
+# AUTENTICACIÓN
+# ════════════════════════════════════════════════════════════════════
+def check_auth() -> bool:
+    if st.session_state.get("auth_ok"):
+        return True
+
+    st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    [data-testid="stToolbar"] {display: none !important;}
+    [data-testid="stDecoration"] {display: none !important;}
+    .viewerBadge_container__r5tak {display: none !important;}
+    .viewerBadge_link__qRIco {display: none !important;}
+    .login-wrap { max-width:380px; margin:80px auto; padding:40px;
+                  background:#f8fafc; border-radius:16px;
+                  box-shadow:0 4px 24px rgba(0,0,0,.10); }
+    .login-title { text-align:center; font-size:2rem; margin-bottom:4px; }
+    .login-sub   { text-align:center; color:#64748b; margin-bottom:28px; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col = st.columns([1, 2, 1])[1]
+    with col:
+        st.markdown('<div class="login-wrap">', unsafe_allow_html=True)
+        st.markdown('<p class="login-title">🏥 CEAPSI</p>', unsafe_allow_html=True)
+        st.markdown('<p class="login-sub">Predicción de Ventas · Acceso restringido</p>',
+                    unsafe_allow_html=True)
+
+        pwd = st.text_input("Contraseña", type="password", placeholder="Ingresa la clave")
+        if st.button("Ingresar", type="primary", use_container_width=True):
+            if pwd == st.secrets.get("password", ""):
+                st.session_state["auth_ok"] = True
+                st.rerun()
+            else:
+                st.error("Contraseña incorrecta")
+        st.markdown('</div>', unsafe_allow_html=True)
+    return False
+
+if not check_auth():
+    st.stop()
+
+# ── Logout en sidebar ────────────────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("**🏥 CEAPSI**")
+    if st.button("Cerrar sesión"):
+        st.session_state["auth_ok"] = False
+        st.rerun()
+
 # ── Carga de artefactos ─────────────────────────────────────────────────────
 @st.cache_resource
 def load_artifacts():
@@ -166,6 +217,10 @@ def df_to_excel_bytes(df: pd.DataFrame) -> bytes:
 # ── Estilos ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+.viewerBadge_container__r5tak {display: none !important;}
+[data-testid="stToolbar"] {display: none !important;}
 .kpi-box { background:#f0f4ff; border-radius:10px; padding:14px 18px;
            text-align:center; margin-bottom:8px; }
 .kpi-val { font-size:2rem; font-weight:700; }
