@@ -35,15 +35,18 @@ def check_auth() -> bool:
 
     st.markdown("""
     <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    [data-testid="stToolbar"] {display: none !important;}
-    [data-testid="stDecoration"] {display: none !important;}
-    .viewerBadge_container__r5tak {display: none !important;}
-    .viewerBadge_link__qRIco {display: none !important;}
-    [data-testid="collapsedControl"] {display: none !important;}
-    section[data-testid="stSidebar"] {display: none !important;}
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important; display: none !important;}
+    header {visibility: hidden !important;}
+    [data-testid="stToolbar"]       {display: none !important;}
+    [data-testid="stDecoration"]    {display: none !important;}
+    [data-testid="stStatusWidget"]  {display: none !important;}
+    [data-testid="collapsedControl"]{display: none !important;}
+    section[data-testid="stSidebar"]{display: none !important;}
+    [class*="viewerBadge"]          {display: none !important;}
+    [class*="styles_viewerBadge"]   {display: none !important;}
+    .stApp > footer                 {display: none !important;}
+    iframe[title="streamlit_analytics"] {display: none !important;}
     .login-wrap { max-width:380px; margin:80px auto; padding:40px;
                   background:#f8fafc; border-radius:16px;
                   box-shadow:0 4px 24px rgba(0,0,0,.10); }
