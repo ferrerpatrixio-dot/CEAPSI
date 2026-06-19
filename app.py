@@ -42,6 +42,8 @@ def check_auth() -> bool:
     [data-testid="stDecoration"] {display: none !important;}
     .viewerBadge_container__r5tak {display: none !important;}
     .viewerBadge_link__qRIco {display: none !important;}
+    [data-testid="collapsedControl"] {display: none !important;}
+    section[data-testid="stSidebar"] {display: none !important;}
     .login-wrap { max-width:380px; margin:80px auto; padding:40px;
                   background:#f8fafc; border-radius:16px;
                   box-shadow:0 4px 24px rgba(0,0,0,.10); }
