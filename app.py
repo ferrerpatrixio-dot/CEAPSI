@@ -170,8 +170,8 @@ def predecir_mes(mes: int, año: int, df_historico: pd.DataFrame = None) -> pd.D
     filas = []
     for dia in range(1, n_dias + 1):
         fd      = date(año, mes, dia)
-        diasem  = fd.weekday()
-        cerrado = diasem == 6 or fd in FERIADOS
+        diasem  = fd.isoweekday()   # 1=Lun...7=Dom, igual que el training
+        cerrado = diasem == 7 or fd in FERIADOS
 
         for tipo in TIPOS:
             tc = TIPO_COD[tipo]
@@ -380,7 +380,7 @@ mientras se investiga la causa.
     st.caption("*Autónomo*: predice sin necesitar datos del día actual; usa solo historial pasado.")
 
     st.dataframe(pd.DataFrame([
-        ("DIASEM",      "Calendario",  "Día de la semana (0=Lun…6=Dom). Captura el patrón semanal de demanda.", "Alta"),
+        ("DIASEM",      "Calendario",  "Día de la semana (1=Lun…7=Dom). Captura el patrón semanal de demanda.", "Alta"),
         ("tipo_cod",    "Categórica",  "Tipo de consulta: Adultos=0, Infantil=1, Teleconsulta=2.", "Alta"),
         ("A_FERIADO",   "Binaria",     "1 si la fecha es feriado nacional → VENTAS=0 ese día.", "Alta"),
         ("TENDENCIA",   "Temporal",    "Días desde Abr 2023. Captura crecimiento de demanda a largo plazo.", "Media"),
@@ -691,13 +691,7 @@ with tab4:
         elif es_presente:
             st.info(f"📅 Estás prediciendo el mes en curso ({MESES_ES[mes_sel]} {año_sel}).")
 
-        # Fuente de lags: entrenamiento + validacion combinados
-        # Así los lags de meses recientes usan datos reales (no PROM_HIST)
-        if (es_pasado or es_presente) and df_train is not None:
-            lag_fuente = (pd.concat([df_train, df_valid], ignore_index=True)
-                          if df_valid is not None else df_train)
-        else:
-            lag_fuente = None
+        lag_fuente = df_train if (es_pasado or es_presente) and df_train is not None else None
 
         with st.spinner(f"Calculando {MESES_ES[mes_sel]} {año_sel}…"):
             df_pred = predecir_mes(int(mes_sel), int(año_sel), df_historico=lag_fuente)
