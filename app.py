@@ -242,6 +242,30 @@ with tab1:
 """)
 
     st.divider()
+
+    # ── Explicación en lenguaje simple ──────────────────────────────
+    with st.expander("💡 ¿Cómo funciona el modelo? (explicación simple)", expanded=True):
+        st.markdown("""
+**El modelo es como un analista con memoria de 3 años.**
+
+Aprendió a partir del historial real de ventas de la clínica (abril 2023 – abril 2026).
+Cada vez que se le pide predecir un día, el modelo mira:
+
+- **¿Qué día de la semana es?** Los lunes y viernes tienen más consultas que los sábados.
+- **¿Es feriado?** Si es festivo, predice $0 (la clínica no atiende).
+- **¿Qué pasó la semana pasada?** Las ventas del mismo día hace 7 días son el mejor indicador de lo que viene.
+- **¿Cómo fue el promedio del último mes?** Para detectar si la demanda está subiendo o bajando.
+- **¿Es época de vacaciones?** En julio-agosto y diciembre-marzo hay menos consultas Infantil.
+- **¿Cuántos pacientes hubo la semana pasada?** El volumen de atenciones también anticipa el nivel de ventas.
+
+Con esa información predice por separado **Adultos**, **Infantil** y **Teleconsulta**, y suma los tres para obtener el total del día.
+
+Al final del mes suma todos los días y aplica un **factor de corrección de +6.3%** para compensar que el modelo tiende a subestimar levemente la demanda real.
+
+> **En resumen**: el modelo aprendió los patrones del pasado (días, estaciones, tendencias) y los usa para estimar el futuro — sin necesitar datos del día que está prediciendo.
+""")
+
+    st.divider()
     st.subheader("Features del modelo — 10 variables autónomas")
     st.caption("*Autónomo*: predice sin necesitar datos del día actual; usa solo historial pasado.")
 
@@ -384,6 +408,57 @@ with tab3:
         if sesgo is not None:
             dir_ = "sobreestima" if sesgo > 0 else "subestima"
             st.info(f"**Sesgo medio:** ${sesgo:,.0f} ({dir_}) — factor ×1.063 corrige la subestimación sistemática.")
+
+        st.divider()
+
+        # ── Explicación de métricas en lenguaje simple ───────────────
+        with st.expander("💡 ¿Qué significa cada indicador? (explicación simple)", expanded=True):
+            st.markdown(f"""
+Estas métricas miden **qué tan bien predice el modelo** comparando sus predicciones contra
+las ventas reales del período de validación (Mayo 2–15 2026, datos que el modelo nunca vio).
+
+---
+
+**R² = {f"{r2:.4f}" if r2 is not None else "N/D"}**
+> *"¿Cuánto de la variación en las ventas logra explicar el modelo?"*
+
+Va de 0 a 1. Un R² de **0.88** significa que el modelo explica el **88% de los cambios** en las ventas diarias.
+El 12% restante se debe a factores que el modelo no captura (eventos puntuales, clima, etc.).
+Un valor sobre **0.75 es considerado bueno** para este tipo de predicción.
+
+---
+
+**MAPE = {f"{mape:.1f}%" if mape is not None else "N/D"}**
+> *"En promedio, ¿cuánto porcentaje se equivoca el modelo por cada predicción?"*
+
+Un MAPE del **16%** significa que si el modelo predice $1.000.000, el valor real estuvo entre
+$840.000 y $1.160.000. Se considera **aceptable bajo el 18%** para ventas de salud,
+que tienen alta variabilidad por ausentismo, urgencias y demanda espontánea.
+
+---
+
+**RMSE = {f"${rmse:,.0f}" if rmse is not None else "N/D"}**
+> *"¿Cuántos pesos se equivoca el modelo en una predicción típica?"*
+
+Es el error "estándar" en pesos. Penaliza más los errores grandes.
+Si el RMSE es $745.000, significa que el modelo puede errar hasta ese monto en un día puntual.
+
+---
+
+**MAE = {f"${mae:,.0f}" if mae is not None else "N/D"}**
+> *"Error promedio simple en pesos, sin castigar los errores grandes."*
+
+Es más fácil de interpretar que el RMSE. Si el MAE es $500.000, en promedio
+la predicción se aleja $500.000 del valor real (puede ser por encima o por debajo).
+
+---
+
+**Sesgo medio = {f"${sesgo:,.0f}" if sesgo is not None else "N/D"}** ({'sobreestima' if sesgo is not None and sesgo > 0 else 'subestima'})
+> *"¿El modelo tiende a predecir de más o de menos?"*
+
+Un sesgo negativo significa que el modelo **subestima** las ventas sistemáticamente.
+Por eso se aplica el **factor de corrección ×1.063** al total mensual, para compensar esa diferencia.
+""")
 
         st.divider()
         st.subheader("Importancia de features (gain)")
