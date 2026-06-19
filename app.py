@@ -533,13 +533,25 @@ with tab4:
 
     c_mes, c_año, c_btn = st.columns([2, 2, 3])
     with c_mes:
-        mes_sel = st.selectbox("Mes", list(MESES_ES.keys()), index=6,
+        mes_sel = st.selectbox("Mes", list(MESES_ES.keys()), index=5,   # Junio por defecto
                                format_func=lambda m: MESES_ES[m])
     with c_año:
-        año_sel = st.number_input("Año", min_value=2024, max_value=2030, value=2026, step=1)
+        año_sel = st.number_input("Año", min_value=2026, max_value=2030, value=2026, step=1)
     with c_btn:
         st.markdown("&nbsp;")
         run = st.button("🔮 Predecir", type="primary", use_container_width=True)
+
+    # ── Límite mínimo de fecha permitida ────────────────────────────
+    FECHA_MIN = date(2026, 6, 1)   # no permitir predecir antes de Jun 2026
+    mes_pedido_check = date(int(año_sel), int(mes_sel), 1)
+    if mes_pedido_check < FECHA_MIN:
+        st.error(
+            f"⛔ No se puede predecir antes de **junio 2026**. "
+            f"El modelo fue entrenado con datos hasta abril 2026 y las predicciones "
+            f"anteriores a esa fecha no tienen sentido como estimaciones futuras. "
+            f"Para analizar meses históricos usa los datos reales en la pestaña **📊 Datos**."
+        )
+        st.stop()
 
     if run:
         # ── Detectar si el mes es pasado, presente o futuro ─────────
