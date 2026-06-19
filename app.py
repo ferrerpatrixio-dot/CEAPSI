@@ -125,17 +125,35 @@ def calc_vacaciones(mes: int, dia: int, año: int) -> int:
         if fi <= date(año, mes, dia) <= ff: return 1
     return 0
 
-def predecir_mes(mes: int, año: int) -> pd.DataFrame:
+def predecir_mes(mes: int, año: int, df_historico: pd.DataFrame = None) -> pd.DataFrame:
+    """
+    df_historico: si se pasa (mes pasado), se usan los datos reales como fuente de lags
+                  en lugar de los promedios históricos. Permite backtest preciso.
+    """
     n_dias  = calendar.monthrange(año, mes)[1]
     td      = timedelta
-    cache_v = {}
+    cache_v = {}   # acumula predicciones del mes actual día a día
     cache_c = {}
 
+    # Índice rápido sobre el historial real (si está disponible)
+    hist_v, hist_c = {}, {}
+    if df_historico is not None:
+        for _, row in df_historico.iterrows():
+            fd_ = row["Fecha"].date() if hasattr(row["Fecha"], "date") else row["Fecha"]
+            tc_ = TIPO_COD.get(row["Tipo Consulta"], 0)
+            hist_v[(fd_, tc_)] = row["VENTAS"] / ESCALA_MM
+            hist_c[(fd_, tc_)] = row["CANT_VENTAS"]
+
     def _v(fd, tc):
-        return cache_v.get((fd, tc), PROM_HIST.get((fd.month, tc), 0.0) / ESCALA_MM)
+        # 1) dato real del historial, 2) predicción acumulada del mes, 3) promedio histórico
+        return hist_v.get((fd, tc),
+               cache_v.get((fd, tc),
+               PROM_HIST.get((fd.month, tc), 0.0) / ESCALA_MM))
 
     def _c(fd, tc):
-        return cache_c.get((fd, tc), PROM_CANT.get((fd.month, tc), 0.0))
+        return hist_c.get((fd, tc),
+               cache_c.get((fd, tc),
+               PROM_CANT.get((fd.month, tc), 0.0)))
 
     filas = []
     for dia in range(1, n_dias + 1):
@@ -524,8 +542,44 @@ with tab4:
         run = st.button("🔮 Predecir", type="primary", use_container_width=True)
 
     if run:
+        # ── Detectar si el mes es pasado, presente o futuro ─────────
+        hoy         = date.today()
+        mes_actual  = date(hoy.year, hoy.month, 1)
+        mes_pedido  = date(int(año_sel), int(mes_sel), 1)
+        es_pasado   = mes_pedido < mes_actual
+        es_presente = mes_pedido == mes_actual
+
+        # Determinar si el mes está en el historial de entrenamiento
+        hist_disponible = False
+        df_hist_mes = None
+        if df_train is not None and (es_pasado or es_presente):
+            df_hist_mes = df_train[
+                (df_train["Fecha"].dt.year  == int(año_sel)) &
+                (df_train["Fecha"].dt.month == int(mes_sel))
+            ]
+            hist_disponible = len(df_hist_mes) > 0
+
+        # Avisos según tipo de mes
+        if es_pasado and hist_disponible:
+            st.info(
+                f"📂 **Modo backtest** — {MESES_ES[mes_sel]} {año_sel} está en el historial de "
+                f"entrenamiento. Se usan los datos reales como fuente de lags para mayor precisión. "
+                f"Al final verás la comparación **real vs predicho**."
+            )
+        elif es_pasado and not hist_disponible:
+            st.warning(
+                f"⚠️ **Mes pasado sin datos** — {MESES_ES[mes_sel]} {año_sel} no está en "
+                f"entrenamiento.csv. Los lags se calcularán con promedios históricos, "
+                f"por lo que la predicción será aproximada."
+            )
+        elif es_presente:
+            st.info(f"📅 Estás prediciendo el mes en curso ({MESES_ES[mes_sel]} {año_sel}).")
+
+        # Fuente de lags: historial completo si el mes es pasado/presente
+        lag_fuente = df_train if (es_pasado or es_presente) and df_train is not None else None
+
         with st.spinner(f"Calculando {MESES_ES[mes_sel]} {año_sel}…"):
-            df_pred = predecir_mes(int(mes_sel), int(año_sel))
+            df_pred = predecir_mes(int(mes_sel), int(año_sel), df_historico=lag_fuente)
 
         df_open = df_pred[~df_pred["cerrado"]].copy()
 
@@ -541,11 +595,59 @@ with tab4:
         fig = px.bar(df_open, x="Fecha_str", y="VENTAS_DIA", color="Tipo Consulta",
                      color_discrete_map=COLOR_TIPOS,
                      labels={"Fecha_str":"Fecha","VENTAS_DIA":"Ventas ($)"},
-                     title=f"Ventas diarias — {MESES_ES[mes_sel]} {año_sel}")
+                     title=f"Ventas diarias predichas — {MESES_ES[mes_sel]} {año_sel}")
         fig.update_xaxes(tickangle=45)
         fig.update_layout(margin=dict(l=0,r=0,t=40,b=0))
         st.plotly_chart(fig, use_container_width=True)
 
+        # ── Comparación real vs predicho (solo si hay historial) ────
+        if hist_disponible and df_hist_mes is not None:
+            st.subheader("📊 Real vs Predicho")
+            df_comp = (df_open[["Fecha","Tipo Consulta","VENTAS_DIA"]]
+                       .rename(columns={"VENTAS_DIA":"Predicho ($)"})
+                       .merge(
+                           df_hist_mes[["Fecha","Tipo Consulta","VENTAS"]]
+                           .assign(Fecha=lambda x: pd.to_datetime(x["Fecha"]).dt.date)
+                           .rename(columns={"VENTAS":"Real ($)"}),
+                           on=["Fecha","Tipo Consulta"], how="left"
+                       ))
+            df_comp["Error ($)"]   = df_comp["Predicho ($)"] - df_comp["Real ($)"]
+            df_comp["Error (%)"]   = (df_comp["Error ($)"] / df_comp["Real ($)"].replace(0, np.nan) * 100).round(1)
+            df_comp["Fecha_str"]   = pd.to_datetime(df_comp["Fecha"]).dt.strftime("%a %d")
+
+            # Gráfico líneas real vs predicho
+            df_tot_dia = df_comp.groupby("Fecha")[["Real ($)","Predicho ($)"]].sum().reset_index()
+            df_tot_dia["Fecha_str"] = pd.to_datetime(df_tot_dia["Fecha"]).dt.strftime("%a %d")
+            fig_cmp = go.Figure()
+            fig_cmp.add_trace(go.Scatter(x=df_tot_dia["Fecha_str"], y=df_tot_dia["Real ($)"],
+                                         name="Real", line=dict(color="#1d4ed8", width=2)))
+            fig_cmp.add_trace(go.Scatter(x=df_tot_dia["Fecha_str"], y=df_tot_dia["Predicho ($)"],
+                                         name="Predicho", line=dict(color="#f59e0b", width=2, dash="dash")))
+            fig_cmp.update_layout(title="Total diario: Real vs Predicho",
+                                   yaxis_tickprefix="$", yaxis_tickformat=",.0f",
+                                   margin=dict(l=0,r=0,t=40,b=0))
+            fig_cmp.update_xaxes(tickangle=45)
+            st.plotly_chart(fig_cmp, use_container_width=True)
+
+            # Tabla detalle
+            st.dataframe(
+                df_comp[["Fecha_str","Tipo Consulta","Real ($)","Predicho ($)","Error ($)","Error (%)"]
+                ].style.format({"Real ($)":"${:,.0f}","Predicho ($)":"${:,.0f}","Error ($)":"${:,.0f}","Error (%)":"{:.1f}%"})
+                 .applymap(lambda v: "color:#dc2626" if isinstance(v, (int,float)) and abs(v) > 20 else "",
+                           subset=["Error (%)"]),
+                use_container_width=True, hide_index=True
+            )
+
+            # Resumen de accuracy
+            mask_r = df_comp["Real ($)"] > 0
+            mape_bt = (df_comp.loc[mask_r, "Error (%)"].abs()).mean()
+            sesgo_bt = df_comp["Error ($)"].mean()
+            c1, c2 = st.columns(2)
+            c1.metric("MAPE backtest", f"{mape_bt:.1f}%")
+            c2.metric("Sesgo medio", f"${sesgo_bt:,.0f}",
+                      delta_color="inverse" if sesgo_bt < 0 else "normal")
+
+        # ── Resumen mensual ──────────────────────────────────────────
         st.subheader("Resumen mensual")
         totales   = df_open.groupby("Tipo Consulta")["VENTAS_DIA"].sum().reindex(TIPOS)
         total_sin = totales.sum()
@@ -559,7 +661,8 @@ with tab4:
         st.dataframe(df_res.style.format({"VENTAS MES ($)": "${:,.0f}"}),
                      use_container_width=True, hide_index=True)
 
-        st.success(f"**Estimación {MESES_ES[mes_sel]} {año_sel}** con factor ×{FACTOR}: "
+        lbl = "Backtest" if es_pasado else "Estimación"
+        st.success(f"**{lbl} {MESES_ES[mes_sel]} {año_sel}** con factor ×{FACTOR}: "
                    f"**${total_con:,.0f}**")
 
         st.download_button(
