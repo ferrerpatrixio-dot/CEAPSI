@@ -4,6 +4,13 @@ basefin1*.xlsx
 *_backup*.xlsx
 basevalidacion*.xlsx
 
+# Excepciones: estos CSV sí van al repo (necesarios para el dashboard)
+!entrenamiento.csv
+!validacion.csv
+
+# Secrets — NUNCA subir al repo
+.streamlit/secrets.toml
+
 # Artefactos obsoletos — solo mantener v5
 xgb_ventas_clinica_v3.*
 xgb_ventas_clinica_v4.*
