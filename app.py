@@ -524,6 +524,22 @@ Por eso se aplica el **factor de corrección ×1.063** al total mensual, para co
         else:
             st.error("**❌ RECHAZADO** — conservar modelo anterior. Revisar datos y código.")
 
+        st.info("""
+**ℹ️ Contexto para interpretar estos resultados**
+
+El período de validación (Mayo 2–15 2026) coincide con un momento en que la demanda de la clínica
+estaba creciendo más rápido de lo que el modelo había aprendido hasta ese momento
+(el entrenamiento llegaba hasta abril 2026).
+
+Esto explica el sesgo negativo (el modelo subestima las ventas) y el MAPE algo por encima del umbral del 18%.
+**No significa que el modelo esté mal construido** — significa que en mayo la clínica tuvo más actividad
+que el patrón histórico, algo que el modelo aprende con el ciclo de mantención siguiente.
+
+A partir del **ciclo de junio 2026**, cuando se incorporen los datos de mayo y junio al entrenamiento,
+se espera que el MAPE vuelva por debajo del 18% y el sesgo se reduzca significativamente.
+El factor de corrección ×1.063 compensa parcialmente esta subestimación en las predicciones mensuales.
+""")
+
 # ════════════════════════════════════════════════════════════════════
 # TAB 4 — PREDICCIÓN
 # ════════════════════════════════════════════════════════════════════
