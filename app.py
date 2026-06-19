@@ -221,7 +221,7 @@ st.title("🏥 CEAPSI — Predicción de Ventas")
 st.caption("Modelo XGBoost v5 · Consultas Adultos · Infantil · Teleconsulta · Las Condes")
 
 try:
-    with open("version.json", encoding="utf-8") as _vf:
+    with open("version.json", encoding="utf-8-sig") as _vf:
         _ver = json.load(_vf)
     _ver_txt = f"· actualizado {_ver.get('timestamp','—')} · commit {_ver.get('commit','—')}"
 except Exception:
