@@ -38,14 +38,18 @@ def check_auth() -> bool:
     #MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important; display: none !important;}
     header {visibility: hidden !important;}
-    [data-testid="stToolbar"]       {display: none !important;}
-    [data-testid="stDecoration"]    {display: none !important;}
-    [data-testid="stStatusWidget"]  {display: none !important;}
-    [data-testid="collapsedControl"]{display: none !important;}
-    section[data-testid="stSidebar"]{display: none !important;}
-    [class*="viewerBadge"]          {display: none !important;}
-    [class*="styles_viewerBadge"]   {display: none !important;}
-    .stApp > footer                 {display: none !important;}
+    [data-testid="stToolbar"]        {display: none !important;}
+    [data-testid="stDecoration"]     {display: none !important;}
+    [data-testid="stStatusWidget"]   {display: none !important;}
+    [data-testid="collapsedControl"] {display: none !important;}
+    [data-testid="stDeployButton"]   {display: none !important;}
+    section[data-testid="stSidebar"] {display: none !important;}
+    [class*="viewerBadge"]           {display: none !important;}
+    [class*="styles_viewerBadge"]    {display: none !important;}
+    [class*="badge"]                 {display: none !important;}
+    .stApp > footer                  {display: none !important;}
+    a[href*="share.streamlit.io"]    {display: none !important;}
+    a[href*="streamlit.io/user"]     {display: none !important;}
     iframe[title="streamlit_analytics"] {display: none !important;}
     .login-wrap { max-width:380px; margin:80px auto; padding:40px;
                   background:#f8fafc; border-radius:16px;
@@ -222,10 +226,22 @@ def df_to_excel_bytes(df: pd.DataFrame) -> bytes:
 # ── Estilos ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-.viewerBadge_container__r5tak {display: none !important;}
-[data-testid="stToolbar"] {display: none !important;}
+#MainMenu {visibility: hidden !important;}
+footer {visibility: hidden !important; display: none !important;}
+header {visibility: hidden !important;}
+[data-testid="stToolbar"]        {display: none !important;}
+[data-testid="stDecoration"]     {display: none !important;}
+[data-testid="stStatusWidget"]   {display: none !important;}
+[data-testid="collapsedControl"] {display: none !important;}
+[data-testid="stDeployButton"]   {display: none !important;}
+section[data-testid="stSidebar"] {display: none !important;}
+[class*="viewerBadge"]           {display: none !important;}
+[class*="styles_viewerBadge"]    {display: none !important;}
+[class*="badge"]                 {display: none !important;}
+.stApp > footer                  {display: none !important;}
+a[href*="share.streamlit.io"]    {display: none !important;}
+a[href*="streamlit.io/user"]     {display: none !important;}
+iframe[title="streamlit_analytics"] {display: none !important;}
 .kpi-box { background:#f0f4ff; border-radius:10px; padding:14px 18px;
            text-align:center; margin-bottom:8px; }
 .kpi-val { font-size:2rem; font-weight:700; }
