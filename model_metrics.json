@@ -1,0 +1,16 @@
+{
+  "r2": 0.881,
+  "mape": 16.3,
+  "rmse": 745000,
+  "mae": null,
+  "sesgo_medio": -45000,
+  "training_info": {
+    "fecha_min_train": "Abr 2023",
+    "fecha_max_train": "Abr 2026",
+    "n_train": 2761,
+    "fecha_min_test": "May 2 2026",
+    "fecha_max_test": "May 15 2026",
+    "n_test": 36,
+    "n_opt": 172
+  }
+}

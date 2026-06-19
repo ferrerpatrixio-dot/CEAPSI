@@ -1,0 +1,37 @@
+# Datos sensibles — NO subir
+*.csv
+basefin1*.xlsx
+*_backup*.xlsx
+basevalidacion*.xlsx
+
+# Artefactos obsoletos — solo mantener v5
+xgb_ventas_clinica_v3.*
+xgb_ventas_clinica_v4.*
+xgb_ventas_clinica_v5b.*
+features_v3.pkl
+features_v4.pkl
+features_v5b.pkl
+prom_hist_dict_v5b.pkl
+prom_cant_dict_v5b.pkl
+xgb_ventas_clinica_v5.pkl
+
+# Scripts de desarrollo — no necesarios en producción
+fix_*.py
+check_*.py
+read_*.py
+debug_*.py
+delete_*.py
+add_*.py
+actualizar_*.py
+verificar_*.py
+entrenar_*.py
+experimento_*.py
+analizar_*.py
+pipeline_*.py
+
+# Logs y temporales
+mantencion_log.txt
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
