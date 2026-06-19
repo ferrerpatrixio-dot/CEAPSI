@@ -507,6 +507,14 @@ with tab3:
 
         # ── Explicación de métricas en lenguaje simple ───────────────
         with st.expander("💡 ¿Qué significa cada indicador? (explicación simple)", expanded=True):
+            _r2_pct   = f"{r2*100:.0f}"  if r2   is not None else "?"
+            _r2_rest  = f"{100 - r2*100:.0f}" if r2 is not None else "?"
+            _mape_str = f"{mape:.0f}"    if mape is not None else "?"
+            _bajo_mape  = f"{1_000_000 * (1 - (mape or 0)/100):,.0f}"
+            _sobre_mape = f"{1_000_000 * (1 + (mape or 0)/100):,.0f}"
+            _rmse_str = f"${rmse:,.0f}"  if rmse is not None else "N/D"
+            _mae_str  = f"${mae:,.0f}"   if mae  is not None else "N/D"
+            _sesgo_dir = "sobreestima" if sesgo is not None and sesgo > 0 else "subestima"
             st.markdown(f"""
 Estas métricas miden **qué tan bien predice el modelo** comparando sus predicciones contra
 las ventas reales del período de validación (Mayo 2–15 2026, datos que el modelo nunca vio).
@@ -516,8 +524,8 @@ las ventas reales del período de validación (Mayo 2–15 2026, datos que el mo
 **R² = {f"{r2:.4f}" if r2 is not None else "N/D"}**
 > *"¿Cuánto de la variación en las ventas logra explicar el modelo?"*
 
-Va de 0 a 1. Un R² de **0.88** significa que el modelo explica el **88% de los cambios** en las ventas diarias.
-El 12% restante se debe a factores que el modelo no captura (eventos puntuales, clima, etc.).
+Va de 0 a 1. Un R² de **{f"{r2:.2f}" if r2 is not None else "?"}** significa que el modelo explica el **{_r2_pct}% de los cambios** en las ventas diarias.
+El {_r2_rest}% restante se debe a factores que el modelo no captura (eventos puntuales, clima, etc.).
 Un valor sobre **0.75 es considerado bueno** para este tipo de predicción.
 
 ---
@@ -525,8 +533,8 @@ Un valor sobre **0.75 es considerado bueno** para este tipo de predicción.
 **MAPE = {f"{mape:.1f}%" if mape is not None else "N/D"}**
 > *"En promedio, ¿cuánto porcentaje se equivoca el modelo por cada predicción?"*
 
-Un MAPE del **16%** significa que si el modelo predice $1.000.000, el valor real estuvo entre
-$840.000 y $1.160.000. Se considera **aceptable bajo el 18%** para ventas de salud,
+Un MAPE del **{_mape_str}%** significa que si el modelo predice $1.000.000, el valor real estuvo entre
+${_bajo_mape} y ${_sobre_mape}. Se considera **aceptable bajo el 18%** para ventas de salud,
 que tienen alta variabilidad por ausentismo, urgencias y demanda espontánea.
 
 ---
@@ -535,19 +543,19 @@ que tienen alta variabilidad por ausentismo, urgencias y demanda espontánea.
 > *"¿Cuántos pesos se equivoca el modelo en una predicción típica?"*
 
 Es el error "estándar" en pesos. Penaliza más los errores grandes.
-Si el RMSE es $745.000, significa que el modelo puede errar hasta ese monto en un día puntual.
+Un RMSE de **{_rmse_str}** significa que el modelo puede errar hasta ese monto en un día puntual.
 
 ---
 
 **MAE = {f"${mae:,.0f}" if mae is not None else "N/D"}**
 > *"Error promedio simple en pesos, sin castigar los errores grandes."*
 
-Es más fácil de interpretar que el RMSE. Si el MAE es $500.000, en promedio
-la predicción se aleja $500.000 del valor real (puede ser por encima o por debajo).
+Es más fácil de interpretar que el RMSE. Con un MAE de **{_mae_str}**, en promedio
+la predicción se aleja ese monto del valor real (puede ser por encima o por debajo).
 
 ---
 
-**Sesgo medio = {f"${sesgo:,.0f}" if sesgo is not None else "N/D"}** ({'sobreestima' if sesgo is not None and sesgo > 0 else 'subestima'})
+**Sesgo medio = {f"${sesgo:,.0f}" if sesgo is not None else "N/D"}** ({_sesgo_dir})
 > *"¿El modelo tiende a predecir de más o de menos?"*
 
 Un sesgo negativo significa que el modelo **subestima** las ventas sistemáticamente.
