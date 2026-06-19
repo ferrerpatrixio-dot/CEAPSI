@@ -85,8 +85,8 @@ def load_artifacts():
 
 model, PROM_HIST, PROM_CANT, FERIADOS, FECHA_INICIO, VAC_INV, FEATURES = load_artifacts()
 
-@st.cache_data
 def load_metrics():
+    # Sin cache: el archivo cambia con cada reentrenamiento
     try:
         with open("model_metrics.json", encoding="utf-8") as f:
             return json.load(f)
