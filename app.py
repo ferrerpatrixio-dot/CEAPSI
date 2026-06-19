@@ -295,6 +295,64 @@ Al final del mes suma todos los días y aplica un **factor de corrección de +6.
 """)
 
     st.divider()
+
+    # ── Ciclo de reentrenamiento ─────────────────────────────────────
+    with st.expander("🔄 ¿Cómo se mantiene actualizado el modelo?", expanded=False):
+        st.markdown("""
+El modelo **aprende de los datos del pasado**. Si la clínica crece, cambia su mix de consultas
+o hay algún evento especial, el modelo necesita "ver" esos nuevos datos para seguir siendo preciso.
+Por eso existe un **ciclo de mantención mensual**: al cierre de cada mes, se evalúa si el modelo
+sigue siendo bueno y, si es así, se actualiza automáticamente con los datos más recientes.
+
+---
+
+### ¿Cómo funciona el ciclo? (paso a paso simple)
+
+**1. Fin de mes** → se carga el mes completo como datos de prueba
+**2. Se corre el modelo** → predice ese mes y se comparan las predicciones con las ventas reales
+**3. Se evalúan dos indicadores clave:**
+- **R² ≥ 0.75** — el modelo explica al menos el 75% de la variación de ventas
+- **MAPE ≤ 18%** — el error promedio no supera el 18%
+
+**4a. Si ambos indicadores están OK → ✅ APROBADO**
+> El modelo se reentrena incorporando el mes nuevo y queda listo para predecir el mes siguiente.
+
+**4b. Si algún indicador falla → ⚠️ ALERTA**
+> El modelo anterior sigue activo (no se actualiza) y se genera una notificación para revisar
+> manualmente qué pasó: ¿hubo un mes atípico? ¿cambió la operación de la clínica? ¿hay datos faltantes?
+
+---
+
+### Ejemplo concreto — Ciclo de junio 2026
+
+| Paso | Detalle |
+|---|---|
+| Datos de entrenamiento | Abril 2023 → Mayo 2026 |
+| Datos de prueba | Junio 2026 completo (30 días × 3 tipos = hasta 90 registros) |
+| Se calculan R² y MAPE | Comparando predicciones vs ventas reales de junio |
+| Si R² ≥ 0.75 y MAPE ≤ 18% | ✅ El modelo se actualiza e incorpora junio. Queda listo para predecir julio |
+| Si MAPE = 22% (por ejemplo) | ⚠️ Alerta: el modelo no se actualiza. Se revisa si junio tuvo algo inusual |
+
+---
+
+### ¿Qué aspecto tiene la alerta?
+
+Si el ciclo no aprueba, el sistema registra automáticamente en un archivo de log:
+
+```
+[2026-07-01 09:15] RECHAZADO  MAPE=22.3% > umbral 18%
+— modelo NO actualizado. Revisar manualmente.
+```
+
+Y en el panel de Métricas de esta aplicación aparecerá el semáforo en ❌ rojo
+con la explicación del motivo. El modelo del mes anterior **sigue funcionando** sin interrupciones
+mientras se investiga la causa.
+
+> **Regla de oro**: cada ciclo necesita datos nuevos que el modelo nunca haya visto.
+> La validación siempre es el mes más reciente que aún no entró al entrenamiento.
+""")
+
+    st.divider()
     st.subheader("Features del modelo — 10 variables autónomas")
     st.caption("*Autónomo*: predice sin necesitar datos del día actual; usa solo historial pasado.")
 
