@@ -3,8 +3,8 @@ Ejecutar después de correr el notebook para generar model_metrics.json.
 Calcula R², MAPE, RMSE, MAE y sesgo directamente desde validacion.csv
 usando entrenamiento.csv como fuente de lags.
 """
-import json, pickle, sys
-from datetime import date, timedelta
+import json, pickle, sys, subprocess
+from datetime import date, timedelta, datetime
 import pandas as pd
 import numpy as np
 import xgboost as xgb
@@ -186,3 +186,79 @@ metrics = {
 with open('model_metrics.json', 'w', encoding='utf-8') as f:
     json.dump(metrics, f, ensure_ascii=False, indent=2)
 print('\nOK  model_metrics.json actualizado.')
+
+# ── Historial de versiones (append-only) ─────────────────────────────────────
+try:
+    _git_commit = subprocess.check_output(
+        ['git', 'rev-parse', '--short', 'HEAD'], stderr=subprocess.DEVNULL
+    ).decode().strip()
+except Exception:
+    _git_commit = 'N/A'
+
+try:
+    _git_branch = subprocess.check_output(
+        ['git', 'rev-parse', '--abbrev-ref', 'HEAD'], stderr=subprocess.DEVNULL
+    ).decode().strip()
+except Exception:
+    _git_branch = 'N/A'
+
+try:
+    _xgb_params = model.get_xgb_params()
+except Exception:
+    _xgb_params = {}
+
+# Leer historial existente
+_hist_path = 'model_versions.json'
+try:
+    with open(_hist_path, encoding='utf-8') as _f:
+        _historial = json.load(_f)
+except (FileNotFoundError, json.JSONDecodeError):
+    _historial = []
+
+_version_num = (_historial[-1]['version'] + 1) if _historial else 1
+
+_entrada = {
+    'version':    _version_num,
+    'timestamp':  datetime.now().strftime('%Y-%m-%d %H:%M'),
+    'git_commit': _git_commit,
+    'git_branch': _git_branch,
+    'modelo': {
+        'archivo':           'xgb_ventas_clinica_v5.json',
+        'n_estimadores_opt': int(model.get_booster().num_boosted_rounds()),
+        'n_features':        len(FEATURES_V5),
+        'features':          list(FEATURES_V5),
+        'params_xgb': {
+            k: v for k, v in _xgb_params.items()
+            if k in ('n_estimators','learning_rate','max_depth',
+                     'min_child_weight','subsample','colsample_bytree',
+                     'reg_alpha','reg_lambda')
+        },
+    },
+    'datos': {
+        'entrenamiento': {
+            'archivo':    'entrenamiento.csv',
+            'fecha_min':  str(df_train['Fecha'].min().date()) if df_train is not None else None,
+            'fecha_max':  str(df_train['Fecha'].max().date()) if df_train is not None else None,
+            'n_filas':    int(len(df_train)) if df_train is not None else None,
+        },
+        'validacion': {
+            'archivo':    'validacion.csv',
+            'fecha_min':  str(df_val['Fecha'].min().date()),
+            'fecha_max':  str(df_val['Fecha'].max().date()),
+            'n_filas':    int(len(df_val)),
+        },
+    },
+    'metricas': {
+        'r2':               round(r2_v,    4),
+        'mape_pct':         round(mape_v,  2),
+        'rmse':             round(rmse_v,  0),
+        'mae':              round(mae_v,   0),
+        'sesgo_medio':      round(sesgo,   0),
+        'factor_correccion':round(factor_corr, 4),
+    },
+}
+
+_historial.append(_entrada)
+with open(_hist_path, 'w', encoding='utf-8') as _f:
+    json.dump(_historial, _f, ensure_ascii=False, indent=2)
+print(f'OK  model_versions.json — versión {_version_num} registrada.')

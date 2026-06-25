@@ -305,7 +305,7 @@ st.markdown(f"""
 <div class="footer">Desarrollado por <a href="https://aiprocess.cl" target="_blank">AIProcess.cl</a> · 2026 {_ver_txt}</div>
 """, unsafe_allow_html=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["📋 Modelo", "📊 Datos", "📈 Métricas", "🔮 Predecir mes"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📋 Modelo", "📊 Datos", "📈 Métricas", "🔮 Predecir mes", "🗂️ Versiones"])
 
 # ════════════════════════════════════════════════════════════════════
 # TAB 1 — MODELO
@@ -868,3 +868,73 @@ with tab4:
             file_name=f"prediccion_{MESES_ES[mes_sel]}_{año_sel}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
+# ════════════════════════════════════════════════════════════════════
+# TAB 5 — HISTORIAL DE VERSIONES
+# ════════════════════════════════════════════════════════════════════
+with tab5:
+    st.subheader("Historial de versiones del modelo")
+    st.caption("Cada entrada se registra automáticamente al ejecutar `generate_metrics.py`.")
+
+    try:
+        import json as _json
+        with open("model_versions.json", encoding="utf-8") as _f:
+            _versiones = _json.load(_f)
+    except (FileNotFoundError, _json.JSONDecodeError):
+        _versiones = []
+
+    if not _versiones:
+        st.info("Aún no hay versiones registradas. Ejecuta `generate_metrics.py` para crear la primera.")
+    else:
+        # Tabla resumen (más reciente primero)
+        _rows = []
+        for v in reversed(_versiones):
+            m = v.get("metricas", {})
+            d = v.get("datos", {})
+            mo = v.get("modelo", {})
+            _rows.append({
+                "Versión":      v.get("version"),
+                "Fecha":        v.get("timestamp"),
+                "Commit":       v.get("git_commit"),
+                "Entrenamiento":f"{d.get('entrenamiento',{}).get('fecha_min','')} → {d.get('entrenamiento',{}).get('fecha_max','')}  ({d.get('entrenamiento',{}).get('n_filas','?')} filas)",
+                "Validación":   f"{d.get('validacion',{}).get('fecha_min','')} → {d.get('validacion',{}).get('fecha_max','')}  ({d.get('validacion',{}).get('n_filas','?')} filas)",
+                "R²":           m.get("r2"),
+                "MAPE %":       m.get("mape_pct"),
+                "RMSE $":       f"${m.get('rmse',0):,.0f}",
+                "Factor ×":     m.get("factor_correccion"),
+                "N° árboles":   mo.get("n_estimadores_opt"),
+                "Features":     mo.get("n_features"),
+            })
+        st.dataframe(pd.DataFrame(_rows), use_container_width=True, hide_index=True)
+
+        # Detalle expandible de cada versión
+        st.divider()
+        st.markdown("**Detalle por versión**")
+        for v in reversed(_versiones):
+            mo = v.get("modelo", {})
+            with st.expander(f"Versión {v['version']} — {v['timestamp']} · commit {v['git_commit']}"):
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown("**Datos**")
+                    d = v.get("datos", {})
+                    st.markdown(f"- Entrenamiento: `{d.get('entrenamiento',{}).get('archivo')}` "
+                                f"{d.get('entrenamiento',{}).get('fecha_min')} → "
+                                f"{d.get('entrenamiento',{}).get('fecha_max')} "
+                                f"({d.get('entrenamiento',{}).get('n_filas')} filas)")
+                    st.markdown(f"- Validación: `{d.get('validacion',{}).get('archivo')}` "
+                                f"{d.get('validacion',{}).get('fecha_min')} → "
+                                f"{d.get('validacion',{}).get('fecha_max')} "
+                                f"({d.get('validacion',{}).get('n_filas')} filas)")
+                    st.markdown("**Métricas**")
+                    m = v.get("metricas", {})
+                    st.markdown(f"- R² = {m.get('r2')} · MAPE = {m.get('mape_pct')}% · "
+                                f"RMSE = ${m.get('rmse'):,.0f}")
+                    st.markdown(f"- Sesgo = ${m.get('sesgo_medio'):,.0f} · Factor = ×{m.get('factor_correccion')}")
+                with c2:
+                    st.markdown("**Modelo**")
+                    st.markdown(f"- Archivo: `{mo.get('archivo')}`")
+                    st.markdown(f"- Árboles óptimos: {mo.get('n_estimadores_opt')}")
+                    st.markdown(f"- Features ({mo.get('n_features')}): `{', '.join(mo.get('features', []))}`")
+                    if mo.get("params_xgb"):
+                        st.markdown("**Hiperparámetros XGBoost**")
+                        st.json(mo.get("params_xgb"))

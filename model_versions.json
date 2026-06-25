@@ -1,0 +1,59 @@
+[
+  {
+    "version": 1,
+    "timestamp": "2026-06-25 15:48",
+    "git_commit": "9812677",
+    "git_branch": "main",
+    "modelo": {
+      "archivo": "xgb_ventas_clinica_v5.json",
+      "n_estimadores_opt": 224,
+      "n_features": 13,
+      "features": [
+        "DIASEM",
+        "tipo_cod",
+        "A_FERIADO",
+        "TENDENCIA",
+        "PROM_HIST",
+        "LAG7",
+        "MEDIA_MOV4S",
+        "VACACIONES",
+        "CANT_LAG7",
+        "CANT_MOV4S",
+        "LAG_RATIO",
+        "MOV4S_RATIO",
+        "CRECIMIENTO_8S"
+      ],
+      "params_xgb": {
+        "colsample_bytree": null,
+        "learning_rate": null,
+        "max_depth": null,
+        "min_child_weight": null,
+        "reg_alpha": null,
+        "reg_lambda": null,
+        "subsample": null
+      }
+    },
+    "datos": {
+      "entrenamiento": {
+        "archivo": "entrenamiento.csv",
+        "fecha_min": "2023-04-01",
+        "fecha_max": "2026-04-30",
+        "n_filas": 2761
+      },
+      "validacion": {
+        "archivo": "validacion.csv",
+        "fecha_min": "2026-05-02",
+        "fecha_max": "2026-05-30",
+        "n_filas": 70
+      }
+    },
+    "metricas": {
+      "r2": 0.6126,
+      "mape_pct": 19.18,
+      "rmse": 1864942.0,
+      "mae": 1508714.0,
+      "sesgo_medio": -330092.0,
+      "factor_correccion": 1.0651
+    }
+  }
+]
