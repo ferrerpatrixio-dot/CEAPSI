@@ -90,13 +90,13 @@ with st.sidebar:
 @st.cache_resource
 def load_artifacts():
     mdl = xgb.XGBRegressor()
-    mdl.load_model("xgb_ventas_clinica_v5.json")
+    mdl.load_model("xgb_ventas_clinica_v5.json")   # contiene modelo v6
     ph   = pickle.load(open("prom_hist_dict.pkl",      "rb"))
     pc   = pickle.load(open("prom_cant_dict.pkl",      "rb"))
     fer  = pickle.load(open("feriados_set.pkl",        "rb"))
     fi   = pickle.load(open("fecha_inicio.pkl",        "rb"))
     vac  = pickle.load(open("vacaciones_invierno.pkl", "rb"))
-    feat = pickle.load(open("features_v5.pkl",         "rb"))
+    feat = pickle.load(open("features_v5.pkl",         "rb"))  # contiene features v6
     return mdl, ph, pc, fer, fi, vac, feat
 
 model, PROM_HIST, PROM_CANT, FERIADOS, FECHA_INICIO, VAC_INV, FEATURES = load_artifacts()
@@ -196,17 +196,32 @@ def predecir_mes(mes: int, año: int, df_historico: pd.DataFrame = None) -> pd.D
             c_mov4s = (_c(fd-td(7),tc)+_c(fd-td(14),tc)+
                        _c(fd-td(21),tc)+_c(fd-td(28),tc)) / 4.0
 
+            # ── Features v6: ratios de posición y crecimiento ──
+            lag_ratio   = l7 / prom_h if prom_h > 0 else 1.0
+            mov4s_ratio = mov4s / prom_h if prom_h > 0 else 1.0
+            _crec_vals  = []
+            for _d in [7, 14, 21, 28, 35, 42, 49, 56]:
+                _lag_fd  = fd - td(_d)
+                _lag_val = _v(_lag_fd, tc)
+                _ph_lag  = PROM_HIST.get((_lag_fd.month, tc), 0.0) / ESCALA_MM
+                if _lag_val > 0 and _ph_lag > 0:
+                    _crec_vals.append(_lag_val / _ph_lag)
+            crec8s = float(sum(_crec_vals) / len(_crec_vals)) if _crec_vals else 1.0
+
             X = pd.DataFrame([{
-                "DIASEM":      diasem,
-                "tipo_cod":    tc,
-                "A_FERIADO":   0,
-                "TENDENCIA":   (pd.Timestamp(fd) - FECHA_INICIO).days,
-                "PROM_HIST":   prom_h,
-                "LAG7":        l7,
-                "MEDIA_MOV4S": mov4s,
-                "VACACIONES":  calc_vacaciones(mes, dia, año),
-                "CANT_LAG7":   c_l7,
-                "CANT_MOV4S":  c_mov4s,
+                "DIASEM":         diasem,
+                "tipo_cod":       tc,
+                "A_FERIADO":      0,
+                "TENDENCIA":      (pd.Timestamp(fd) - FECHA_INICIO).days,
+                "PROM_HIST":      prom_h,
+                "LAG7":           l7,
+                "MEDIA_MOV4S":    mov4s,
+                "VACACIONES":     calc_vacaciones(mes, dia, año),
+                "CANT_LAG7":      c_l7,
+                "CANT_MOV4S":     c_mov4s,
+                "LAG_RATIO":      lag_ratio,
+                "MOV4S_RATIO":    mov4s_ratio,
+                "CRECIMIENTO_8S": crec8s,
             }])
 
             pred_mm = max(float(model.predict(X)[0]), 0.0)
