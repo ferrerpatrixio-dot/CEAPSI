@@ -384,7 +384,7 @@ Cada vez que se le pide predecir un día, el modelo mira:
 
 Con esa información predice por separado **Adultos**, **Infantil** y **Teleconsulta**, y suma los tres para obtener el total del día.
 
-Al final del mes suma todos los días y aplica un **factor de corrección de {"+" if FACTOR >= 1 else ""}{(FACTOR-1)*100:.1f}%** para compensar que el modelo tiende a {"subestimar" if FACTOR >= 1 else "sobreestimar"} la demanda real.
+Al final del mes suma todos los días y aplica un **factor de corrección de {"+" if factor_manual >= 1 else ""}{(factor_manual-1)*100:.1f}%** para compensar que el modelo tiende a {"subestimar" if factor_manual >= 1 else "sobreestimar"} la demanda real{"" if abs(factor_manual - FACTOR) < 0.0001 else f" *(ajustado manualmente; valor base del modelo: {'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%)*"}.
 
 > **En resumen**: el modelo aprendió los patrones del pasado (días, estaciones, tendencias) y los usa para estimar el futuro — sin necesitar datos del día que está prediciendo.
 """)
