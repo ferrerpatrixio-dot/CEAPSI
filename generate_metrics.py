@@ -19,7 +19,7 @@ TIPO_COD   = {'Adultos': 0, 'Infantil': 1, 'Teleconsulta': 2}
 # ── Cargar artefactos ────────────────────────────────────────────────────────
 model = xgb.XGBRegressor()
 model.load_model('xgb_ventas_clinica_v5.json')
-FEATURES_V5  = pickle.load(open('features_v5.pkl',         'rb'))
+FEATURES_V5  = pickle.load(open('features_v5.pkl', 'rb'))  # contiene features v6 (13)
 PROM_HIST    = pickle.load(open('prom_hist_dict.pkl',       'rb'))
 PROM_CANT    = pickle.load(open('prom_cant_dict.pkl',       'rb'))
 FERIADOS     = pickle.load(open('feriados_set.pkl',         'rb'))
@@ -86,23 +86,38 @@ for _, row in df_val.iterrows():
     l14   = _v(fd - td(14), tc)
     l21   = _v(fd - td(21), tc)
     l28   = _v(fd - td(28), tc)
+    mov4s = (l7 + l14 + l21 + l28) / 4.0
+    prom_h = PROM_HIST.get((mes_, tc), 0.0) / ESCALA_MM
+
+    # CRECIMIENTO_8S: ratio promedio últimas 8 semanas vs histórico
+    _crec_vals = []
+    for _d in [7, 14, 21, 28, 35, 42, 49, 56]:
+        _lag_fd  = fd - td(_d)
+        _lag_val = _v(_lag_fd, tc)
+        _ph_lag  = PROM_HIST.get((_lag_fd.month, tc), 0.0) / ESCALA_MM
+        if _lag_val > 0 and _ph_lag > 0:
+            _crec_vals.append(_lag_val / _ph_lag)
+    crec8s = float(sum(_crec_vals) / len(_crec_vals)) if _crec_vals else 1.0
 
     filas_X.append({
-        'DIASEM':      fd.weekday(),
-        'tipo_cod':    tc,
-        'A_FERIADO':   1 if fd in FERIADOS else 0,
-        'TENDENCIA':   (pd.Timestamp(fd) - FECHA_INICIO).days,
-        'PROM_HIST':   PROM_HIST.get((mes_, tc), 0.0) / ESCALA_MM,
-        'LAG7':        l7,
-        'MEDIA_MOV4S': (l7 + l14 + l21 + l28) / 4.0,
-        'VACACIONES':  calc_vacaciones(mes_, dia_, año_),
-        'CANT_LAG7':   _c(fd - td(7),  tc),
-        'CANT_MOV4S':  (_c(fd-td(7),tc)+_c(fd-td(14),tc)+
-                        _c(fd-td(21),tc)+_c(fd-td(28),tc)) / 4.0,
+        'DIASEM':         fd.isoweekday(),   # 1=Lun…7=Dom (igual que training)
+        'tipo_cod':       tc,
+        'A_FERIADO':      1 if fd in FERIADOS else 0,
+        'TENDENCIA':      (pd.Timestamp(fd) - FECHA_INICIO).days,
+        'PROM_HIST':      prom_h,
+        'LAG7':           l7,
+        'MEDIA_MOV4S':    mov4s,
+        'VACACIONES':     calc_vacaciones(mes_, dia_, año_),
+        'CANT_LAG7':      _c(fd - td(7),  tc),
+        'CANT_MOV4S':     (_c(fd-td(7),tc)+_c(fd-td(14),tc)+
+                          _c(fd-td(21),tc)+_c(fd-td(28),tc)) / 4.0,
+        'LAG_RATIO':      l7 / prom_h if prom_h > 0 else 1.0,
+        'MOV4S_RATIO':    mov4s / prom_h if prom_h > 0 else 1.0,
+        'CRECIMIENTO_8S': crec8s,
     })
     y_real.append(row['VENTAS'] / ESCALA_MM)
 
-X_val   = pd.DataFrame(filas_X)[FEATURES_V5]
+X_val   = pd.DataFrame(filas_X)[FEATURES_V5]   # 13 features v6
 y_real  = np.array(y_real)
 y_pred  = model.predict(X_val)
 
