@@ -3,7 +3,8 @@
   "mape": 19.176094322388714,
   "rmse": 1864941.8286514136,
   "mae": 1508713.625,
-  "sesgo_medio": 682161.2107142857,
+  "sesgo_medio": -330091.6119791667,
+  "factor_correccion": 1.0651,
   "training_info": {
     "fecha_min_train": "2023-04-01",
     "fecha_max_train": "2026-04-30",

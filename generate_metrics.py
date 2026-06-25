@@ -139,7 +139,14 @@ r2_v   = float(r2_score(y_real_pesos, y_pred_pesos))
 rmse_v = float(np.sqrt(mean_squared_error(y_real_pesos, y_pred_pesos)))
 mae_v  = float(mean_absolute_error(y_real_pesos, y_pred_pesos))
 mape_v = float(np.mean(np.abs((y_real_pesos[mask] - y_pred_pesos[mask]) / y_real_pesos[mask])) * 100)
-sesgo  = float((y_pred_pesos - y_real_pesos).mean())
+# Sesgo sobre misma máscara que MAPE/factor para consistencia (excluye outliers extremos)
+sesgo  = float((y_pred_pesos[mask] - y_real_pesos[mask]).mean())
+
+# Factor de corrección: real / predicho (solo filas con ventas > 500K para excluir outliers)
+# >1 si el modelo subestima, <1 si sobreestima
+_sum_real = float(y_real_pesos[mask].sum())
+_sum_pred = float(y_pred_pesos[mask].sum())
+factor_corr = round(_sum_real / _sum_pred, 4) if _sum_pred > 0 else 1.0
 
 print(f'\nMétricas validación ({df_val["Fecha"].min().date()} → {df_val["Fecha"].max().date()}):')
 print(f'  R²   = {r2_v:.4f}')
@@ -147,6 +154,7 @@ print(f'  MAPE = {mape_v:.2f}%')
 print(f'  RMSE = ${rmse_v:,.0f}')
 print(f'  MAE  = ${mae_v:,.0f}')
 print(f'  Sesgo medio = ${sesgo:,.0f}')
+print(f'  Factor corrección = {factor_corr:.4f} ({"subestima→multiplica" if factor_corr > 1 else "sobreestima→reduce"})')
 
 # pred_vs_real para scatter plot
 for i, row in enumerate(df_val.itertuples()):
@@ -157,11 +165,12 @@ for i, row in enumerate(df_val.itertuples()):
     })
 
 metrics = {
-    'r2':          r2_v,
-    'mape':        mape_v,
-    'rmse':        rmse_v,
-    'mae':         mae_v,
-    'sesgo_medio': sesgo,
+    'r2':              r2_v,
+    'mape':            mape_v,
+    'rmse':            rmse_v,
+    'mae':             mae_v,
+    'sesgo_medio':     sesgo,
+    'factor_correccion': factor_corr,
     'training_info': {
         'fecha_min_train': str(df_train['Fecha'].min().date()) if df_train is not None else 'Abr 2023',
         'fecha_max_train': str(df_train['Fecha'].max().date()) if df_train is not None else 'Abr 2026',

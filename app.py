@@ -19,7 +19,15 @@ st.set_page_config(
 
 # ── Constantes ──────────────────────────────────────────────────────────────
 ESCALA_MM   = 1_000_000
-FACTOR      = 1.063
+# FACTOR se lee de model_metrics.json (calculado automáticamente en generate_metrics.py)
+# Fallback 1.0 si el JSON no existe aún
+try:
+    import json as _json
+    with open("model_metrics.json", encoding="utf-8") as _mf:
+        _m0 = _json.load(_mf)
+    FACTOR = float(_m0.get("factor_correccion", 1.063))
+except Exception:
+    FACTOR = 1.063
 TIPOS       = ["Adultos", "Infantil", "Teleconsulta"]
 TIPO_COD    = {"Adultos": 0, "Infantil": 1, "Teleconsulta": 2}
 COLOR_TIPOS = {"Adultos": "#3b82f6", "Infantil": "#10b981", "Teleconsulta": "#f59e0b"}
