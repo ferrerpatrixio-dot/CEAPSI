@@ -87,12 +87,34 @@ def check_auth() -> bool:
 if not check_auth():
     st.stop()
 
-# ── Logout en sidebar ────────────────────────────────────────────────────────
+# ── Sidebar: logout + ajuste manual de factor ────────────────────────────────
 with st.sidebar:
     st.markdown("**🏥 CEAPSI**")
     if st.button("Cerrar sesión"):
         st.session_state["auth_ok"] = False
         st.rerun()
+
+    st.divider()
+    st.markdown("**⚙️ Ajuste de predicción**")
+    factor_manual = st.number_input(
+        "Factor de corrección mensual",
+        min_value=0.50,
+        max_value=2.50,
+        value=float(round(FACTOR, 4)),
+        step=0.01,
+        format="%.4f",
+        help=(
+            f"Valor calculado automáticamente desde validación: {FACTOR:.4f} "
+            f"({'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%). "
+            "Puedes ajustarlo manualmente según criterio de negocio."
+        ),
+    )
+    if abs(factor_manual - FACTOR) > 0.0001:
+        st.caption(f"Modelo: ×{FACTOR:.4f} · **Activo: ×{factor_manual:.4f}** "
+                   f"({'+' if factor_manual>=1 else ''}{(factor_manual-1)*100:.1f}%)")
+    else:
+        st.caption(f"Usando factor automático: ×{FACTOR:.4f} "
+                   f"({'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%)")
 
 # ── Carga de artefactos ─────────────────────────────────────────────────────
 @st.cache_resource
@@ -697,7 +719,9 @@ El factor de corrección ×{FACTOR:.3f} compensa parcialmente esta diferencia en
 # ════════════════════════════════════════════════════════════════════
 with tab4:
     st.subheader("Predicción mensual de ventas")
-    st.caption(f"Factor de corrección ×{FACTOR} aplicado al total mensual.")
+    st.caption(f"Factor de corrección ×{factor_manual:.4f} aplicado al total mensual "
+               f"({'+' if factor_manual>=1 else ''}{(factor_manual-1)*100:.1f}%). "
+               "Ajustable en el panel lateral ←")
 
     c_mes, c_año, c_btn = st.columns([2, 2, 3])
     with c_mes:
@@ -832,18 +856,18 @@ with tab4:
         st.subheader("Resumen mensual")
         totales   = df_open.groupby("Tipo Consulta")["VENTAS_DIA"].sum().reindex(TIPOS)
         total_sin = totales.sum()
-        total_con = total_sin * FACTOR
+        total_con = total_sin * factor_manual
 
         df_res = pd.concat([
             totales.reset_index().rename(columns={"VENTAS_DIA":"VENTAS MES ($)"}),
             pd.DataFrame([{"Tipo Consulta":"TOTAL (sin factor)", "VENTAS MES ($)": total_sin}]),
-            pd.DataFrame([{"Tipo Consulta":f"TOTAL ×{FACTOR}",  "VENTAS MES ($)": total_con}]),
+            pd.DataFrame([{"Tipo Consulta":f"TOTAL ×{factor_manual:.4f}", "VENTAS MES ($)": total_con}]),
         ], ignore_index=True)
         st.dataframe(df_res.style.format({"VENTAS MES ($)": "${:,.0f}"}),
                      use_container_width=True, hide_index=True)
 
         lbl = "Backtest" if es_pasado else "Estimación"
-        st.success(f"**{lbl} {MESES_ES[mes_sel]} {año_sel}** con factor ×{FACTOR}: "
+        st.success(f"**{lbl} {MESES_ES[mes_sel]} {año_sel}** con factor ×{factor_manual:.4f}: "
                    f"**${total_con:,.0f}**")
 
         st.download_button(
