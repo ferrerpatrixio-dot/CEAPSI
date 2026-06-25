@@ -94,10 +94,6 @@ with st.sidebar:
         st.session_state["auth_ok"] = False
         st.rerun()
 
-# factor_manual se define en tab4 y se almacena en session_state para uso global
-if "factor_manual" not in st.session_state:
-    st.session_state["factor_manual"] = float(round(FACTOR, 4))
-factor_manual = st.session_state["factor_manual"]
 
 # ── Carga de artefactos ─────────────────────────────────────────────────────
 @st.cache_resource
@@ -367,7 +363,7 @@ Cada vez que se le pide predecir un día, el modelo mira:
 
 Con esa información predice por separado **Adultos**, **Infantil** y **Teleconsulta**, y suma los tres para obtener el total del día.
 
-Al final del mes suma todos los días y aplica un **factor de corrección de {"+" if factor_manual >= 1 else ""}{(factor_manual-1)*100:.1f}%** para compensar que el modelo tiende a {"subestimar" if factor_manual >= 1 else "sobreestimar"} la demanda real{"" if abs(factor_manual - FACTOR) < 0.0001 else f" *(ajustado manualmente; valor base del modelo: {'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%)*"}.
+Al final del mes suma todos los días y aplica un **factor de corrección de {"+" if FACTOR >= 1 else ""}{(FACTOR-1)*100:.1f}%** para compensar que el modelo tiende a {"subestimar" if FACTOR >= 1 else "sobreestimar"} la demanda real{"" if abs(FACTOR - FACTOR) < 0.0001 else f" *(ajustado manualmente; valor base del modelo: {'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%)*"}.
 
 > **En resumen**: el modelo aprendió los patrones del pasado (días, estaciones, tendencias) y los usa para estimar el futuro — sin necesitar datos del día que está prediciendo.
 """)
@@ -719,28 +715,12 @@ El factor de corrección ×{FACTOR:.3f} compensa parcialmente esta diferencia en
 with tab4:
     st.subheader("Predicción mensual de ventas")
 
-    c_mes, c_año, c_factor, c_btn = st.columns([2, 1, 2, 2])
+    c_mes, c_año, c_btn = st.columns([2, 2, 3])
     with c_mes:
         mes_sel = st.selectbox("Mes", list(MESES_ES.keys()), index=5,
                                format_func=lambda m: MESES_ES[m])
     with c_año:
         año_sel = st.number_input("Año", min_value=2026, max_value=2030, value=2026, step=1)
-    with c_factor:
-        factor_manual = st.number_input(
-            "Factor corrección",
-            min_value=0.50, max_value=2.50,
-            value=st.session_state["factor_manual"],
-            step=0.01, format="%.4f",
-            help=(f"Base automática del modelo: ×{FACTOR:.4f} "
-                  f"({'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%). "
-                  "Ajusta según criterio de negocio."),
-        )
-        st.session_state["factor_manual"] = factor_manual
-        if abs(factor_manual - FACTOR) > 0.001:
-            st.caption(f"⚠️ Ajustado: {'+' if factor_manual>=1 else ''}{(factor_manual-1)*100:.1f}%"
-                       f" (modelo base: {'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%)")
-        else:
-            st.caption(f"Automático: {'+' if factor_manual>=1 else ''}{(factor_manual-1)*100:.1f}%")
     with c_btn:
         st.markdown("&nbsp;")
         run = st.button("🔮 Predecir", type="primary", use_container_width=True)
@@ -868,18 +848,18 @@ with tab4:
         st.subheader("Resumen mensual")
         totales   = df_open.groupby("Tipo Consulta")["VENTAS_DIA"].sum().reindex(TIPOS)
         total_sin = totales.sum()
-        total_con = total_sin * factor_manual
+        total_con = total_sin * FACTOR
 
         df_res = pd.concat([
             totales.reset_index().rename(columns={"VENTAS_DIA":"VENTAS MES ($)"}),
             pd.DataFrame([{"Tipo Consulta":"TOTAL (sin factor)", "VENTAS MES ($)": total_sin}]),
-            pd.DataFrame([{"Tipo Consulta":f"TOTAL ×{factor_manual:.4f}", "VENTAS MES ($)": total_con}]),
+            pd.DataFrame([{"Tipo Consulta":f"TOTAL ×{FACTOR:.4f}", "VENTAS MES ($)": total_con}]),
         ], ignore_index=True)
         st.dataframe(df_res.style.format({"VENTAS MES ($)": "${:,.0f}"}),
                      use_container_width=True, hide_index=True)
 
         lbl = "Backtest" if es_pasado else "Estimación"
-        st.success(f"**{lbl} {MESES_ES[mes_sel]} {año_sel}** con factor ×{factor_manual:.4f}: "
+        st.success(f"**{lbl} {MESES_ES[mes_sel]} {año_sel}** con factor ×{FACTOR:.4f}: "
                    f"**${total_con:,.0f}**")
 
         st.download_button(
