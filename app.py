@@ -265,7 +265,7 @@ iframe[title="streamlit_analytics"] {display: none !important;}
 
 # ── Header ───────────────────────────────────────────────────────────────────
 st.title("🏥 CEAPSI — Predicción de Ventas")
-st.caption("Modelo XGBoost v5 · Consultas Adultos · Infantil · Teleconsulta · Las Condes")
+st.caption("Modelo XGBoost v6 · Consultas Adultos · Infantil · Teleconsulta · Las Condes")
 
 try:
     with open("version.json", encoding="utf-8-sig") as _vf:
