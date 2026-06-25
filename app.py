@@ -576,6 +576,17 @@ with tab3:
             _rmse_str = f"${rmse:,.0f}"  if rmse is not None else "N/D"
             _mae_str  = f"${mae:,.0f}"   if mae  is not None else "N/D"
             _sesgo_dir = "sobreestima" if sesgo is not None and sesgo > 0 else "subestima"
+            if sesgo is not None and sesgo > 0:
+                _sesgo_expl = (f"Un sesgo **positivo** (+${sesgo:,.0f}) significa que el modelo actualmente "
+                               f"**sobreestima** las ventas. El factor de corrección ×{FACTOR:.3f} está calibrado "
+                               f"sobre el período de entrenamiento y puede necesitar revisión.")
+            elif sesgo is not None and sesgo < 0:
+                _sesgo_expl = (f"Un sesgo **negativo** (−${abs(sesgo):,.0f}) significa que el modelo **subestima** "
+                               f"las ventas sistemáticamente. Por eso se aplica el **factor de corrección "
+                               f"×{FACTOR:.3f}** al total mensual, para compensar esa diferencia.")
+            else:
+                _sesgo_expl = (f"El sesgo es prácticamente nulo: el modelo no tiene tendencia sistemática "
+                               f"a sobreestimar ni subestimar. El factor ×{FACTOR:.3f} se aplica por precaución.")
             st.markdown(f"""
 Estas métricas miden **qué tan bien predice el modelo** comparando sus predicciones contra
 las ventas reales del período de validación ({VAL_LABEL}, datos que el modelo nunca vio).
@@ -619,8 +630,7 @@ la predicción se aleja ese monto del valor real (puede ser por encima o por deb
 **Sesgo medio = {f"${sesgo:,.0f}" if sesgo is not None else "N/D"}** ({_sesgo_dir})
 > *"¿El modelo tiende a predecir de más o de menos?"*
 
-Un sesgo negativo significa que el modelo **subestima** las ventas sistemáticamente.
-Por eso se aplica el **factor de corrección ×{FACTOR:.3f}** al total mensual, para compensar esa diferencia.
+{_sesgo_expl}
 """)
 
         st.divider()
@@ -659,18 +669,19 @@ Por eso se aplica el **factor de corrección ×{FACTOR:.3f}** al total mensual, 
             st.error("**❌ RECHAZADO** — conservar modelo anterior. Revisar datos y código.")
 
         if not (ok_r2 and ok_mape):
-            st.info("""
+            _dir_sesgo_ctx = "sobreestima" if sesgo is not None and sesgo > 0 else "subestima"
+            st.info(f"""
 **ℹ️ Contexto para interpretar estos resultados**
 
 El período de validación ({VAL_LABEL}) coincide con un momento en que la demanda de la clínica
 estaba creciendo más rápido de lo que el modelo había aprendido hasta ese momento
 (el entrenamiento llegaba hasta abril 2026).
 
-Esto puede explicar el sesgo negativo (el modelo subestima las ventas) o un MAPE por encima del umbral del 18%.
+Esto puede explicar que el modelo {_dir_sesgo_ctx} las ventas o tenga un MAPE por encima del umbral del 18%.
 **No significa que el modelo esté mal construido** — significa que en ese período la clínica tuvo más actividad
 que el patrón histórico, algo que el modelo aprende con el ciclo de mantención siguiente.
 
-El factor de corrección ×{FACTOR:.3f} compensa parcialmente esta subestimación en las predicciones mensuales.
+El factor de corrección ×{FACTOR:.3f} compensa parcialmente esta diferencia en las predicciones mensuales.
 """)
 
 # ════════════════════════════════════════════════════════════════════
