@@ -407,20 +407,23 @@ mientras se investiga la causa.
 """)
 
     st.divider()
-    st.subheader("Features del modelo — 10 variables autónomas")
+    st.subheader("Features del modelo — 13 variables autónomas")
     st.caption("*Autónomo*: predice sin necesitar datos del día actual; usa solo historial pasado.")
 
     st.dataframe(pd.DataFrame([
-        ("DIASEM",      "Calendario",  "Día de la semana (1=Lun…7=Dom). Captura el patrón semanal de demanda.", "Alta"),
-        ("tipo_cod",    "Categórica",  "Tipo de consulta: Adultos=0, Infantil=1, Teleconsulta=2.", "Alta"),
-        ("A_FERIADO",   "Binaria",     "1 si la fecha es feriado nacional → VENTAS=0 ese día.", "Alta"),
-        ("TENDENCIA",   "Temporal",    "Días desde Abr 2023. Captura crecimiento de demanda a largo plazo.", "Media"),
-        ("PROM_HIST",   "Histórica",   "Promedio histórico de VENTAS para ese mes y tipo (MM$). Ancla estacional fuerte.", "Alta"),
-        ("LAG7",        "Lag ventas",  "VENTAS de hace 7 días exactos (mismo día de semana). Mejor predictor de corto plazo.", "Muy alta"),
-        ("MEDIA_MOV4S", "Lag ventas",  "Promedio de lags -7/-14/-21/-28 días. Suaviza ruido puntual de LAG7.", "Alta"),
-        ("VACACIONES",  "Binaria",     "1 en vacaciones de verano (dic 26–mar 1) o invierno (MINEDUC).", "Media"),
-        ("CANT_LAG7",   "Lag conteo",  "Cantidad de pacientes atendidos hace 7 días. Volumen sin efecto precio.", "Media"),
-        ("CANT_MOV4S",  "Lag conteo",  "Promedio de cantidad de pacientes en las últimas 4 semanas.", "Media"),
+        ("DIASEM",         "Calendario",  "Día de la semana (1=Lun…7=Dom). Captura el patrón semanal de demanda.", "Alta"),
+        ("tipo_cod",       "Categórica",  "Tipo de consulta: Adultos=0, Infantil=1, Teleconsulta=2.", "Alta"),
+        ("A_FERIADO",      "Binaria",     "1 si la fecha es feriado nacional → VENTAS=0 ese día.", "Alta"),
+        ("TENDENCIA",      "Temporal",    "Días desde Abr 2023. Captura crecimiento de demanda a largo plazo.", "Media"),
+        ("PROM_HIST",      "Histórica",   "Promedio histórico de VENTAS para ese mes y tipo (MM$). Ancla estacional fuerte.", "Alta"),
+        ("LAG7",           "Lag ventas",  "VENTAS de hace 7 días exactos (mismo día de semana). Mejor predictor de corto plazo.", "Muy alta"),
+        ("MEDIA_MOV4S",    "Lag ventas",  "Promedio de lags -7/-14/-21/-28 días. Suaviza ruido puntual de LAG7.", "Alta"),
+        ("VACACIONES",     "Binaria",     "1 en vacaciones de verano (dic 26–mar 1) o invierno (MINEDUC).", "Media"),
+        ("CANT_LAG7",      "Lag conteo",  "Cantidad de pacientes atendidos hace 7 días. Volumen sin efecto precio.", "Media"),
+        ("CANT_MOV4S",     "Lag conteo",  "Promedio de cantidad de pacientes en las últimas 4 semanas.", "Media"),
+        ("LAG_RATIO",      "Ratio v6",    "LAG7 / PROM_HIST: posición relativa inmediata vs. histórico del mes. Detecta si la semana pasada fue alta o baja.", "Alta"),
+        ("MOV4S_RATIO",    "Ratio v6",    "MEDIA_MOV4S / PROM_HIST: tendencia de las últimas 4 semanas normalizada por el histórico.", "Alta"),
+        ("CRECIMIENTO_8S", "Ratio v6",    "Promedio de ratios LAG/PROM_HIST en las últimas 8 semanas. Detecta si la clínica está en régimen de crecimiento acelerado.", "Muy alta"),
     ], columns=["Feature", "Tipo", "Descripción", "Importancia relativa"]),
     use_container_width=True, hide_index=True)
 
