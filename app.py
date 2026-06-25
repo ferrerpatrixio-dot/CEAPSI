@@ -305,7 +305,7 @@ with tab1:
 | Registros validación | {info.get('n_test', 36)} filas |
 | Tipos de consulta | Adultos · Infantil · Teleconsulta |
 | Target | VENTAS diarias por tipo ($) |
-| Factor de corrección mensual | ×1.063 |
+| Factor de corrección mensual | ×{FACTOR:.3f} |
 """)
 
     with c_b:
@@ -551,15 +551,15 @@ with tab3:
 
         if sesgo is not None:
             dir_ = "sobreestima" if sesgo > 0 else "subestima"
-            st.info(f"**Sesgo medio:** ${sesgo:,.0f} ({dir_}) — factor ×1.063 corrige la subestimación sistemática.")
+            st.info(f"**Sesgo medio:** ${sesgo:,.0f} ({dir_}) — factor ×{FACTOR:.3f} corrige la subestimación sistemática.")
 
         st.divider()
 
         # ── Explicación de métricas en lenguaje simple ───────────────
         with st.expander("💡 ¿Qué significa cada indicador? (explicación simple)", expanded=True):
-            _r2_pct   = f"{r2*100:.0f}"  if r2   is not None else "?"
-            _r2_rest  = f"{100 - r2*100:.0f}" if r2 is not None else "?"
-            _mape_str = f"{mape:.0f}"    if mape is not None else "?"
+            _r2_pct   = f"{r2*100:.1f}"       if r2   is not None else "?"
+            _r2_rest  = f"{100 - r2*100:.1f}" if r2   is not None else "?"
+            _mape_str = f"{mape:.1f}"          if mape is not None else "?"
             _bajo_mape  = f"{1_000_000 * (1 - (mape or 0)/100):,.0f}"
             _sobre_mape = f"{1_000_000 * (1 + (mape or 0)/100):,.0f}"
             _rmse_str = f"${rmse:,.0f}"  if rmse is not None else "N/D"
@@ -609,7 +609,7 @@ la predicción se aleja ese monto del valor real (puede ser por encima o por deb
 > *"¿El modelo tiende a predecir de más o de menos?"*
 
 Un sesgo negativo significa que el modelo **subestima** las ventas sistemáticamente.
-Por eso se aplica el **factor de corrección ×1.063** al total mensual, para compensar esa diferencia.
+Por eso se aplica el **factor de corrección ×{FACTOR:.3f}** al total mensual, para compensar esa diferencia.
 """)
 
         st.divider()
@@ -659,7 +659,7 @@ Esto puede explicar el sesgo negativo (el modelo subestima las ventas) o un MAPE
 **No significa que el modelo esté mal construido** — significa que en ese período la clínica tuvo más actividad
 que el patrón histórico, algo que el modelo aprende con el ciclo de mantención siguiente.
 
-El factor de corrección ×1.063 compensa parcialmente esta subestimación en las predicciones mensuales.
+El factor de corrección ×{FACTOR:.3f} compensa parcialmente esta subestimación en las predicciones mensuales.
 """)
 
 # ════════════════════════════════════════════════════════════════════
