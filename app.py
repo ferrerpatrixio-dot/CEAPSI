@@ -87,34 +87,17 @@ def check_auth() -> bool:
 if not check_auth():
     st.stop()
 
-# ── Sidebar: logout + ajuste manual de factor ────────────────────────────────
+# ── Sidebar: solo logout ─────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("**🏥 CEAPSI**")
     if st.button("Cerrar sesión"):
         st.session_state["auth_ok"] = False
         st.rerun()
 
-    st.divider()
-    st.markdown("**⚙️ Ajuste de predicción**")
-    factor_manual = st.number_input(
-        "Factor de corrección mensual",
-        min_value=0.50,
-        max_value=2.50,
-        value=float(round(FACTOR, 4)),
-        step=0.01,
-        format="%.4f",
-        help=(
-            f"Valor calculado automáticamente desde validación: {FACTOR:.4f} "
-            f"({'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%). "
-            "Puedes ajustarlo manualmente según criterio de negocio."
-        ),
-    )
-    if abs(factor_manual - FACTOR) > 0.0001:
-        st.caption(f"Modelo: ×{FACTOR:.4f} · **Activo: ×{factor_manual:.4f}** "
-                   f"({'+' if factor_manual>=1 else ''}{(factor_manual-1)*100:.1f}%)")
-    else:
-        st.caption(f"Usando factor automático: ×{FACTOR:.4f} "
-                   f"({'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%)")
+# factor_manual se define en tab4 y se almacena en session_state para uso global
+if "factor_manual" not in st.session_state:
+    st.session_state["factor_manual"] = float(round(FACTOR, 4))
+factor_manual = st.session_state["factor_manual"]
 
 # ── Carga de artefactos ─────────────────────────────────────────────────────
 @st.cache_resource
@@ -735,16 +718,29 @@ El factor de corrección ×{FACTOR:.3f} compensa parcialmente esta diferencia en
 # ════════════════════════════════════════════════════════════════════
 with tab4:
     st.subheader("Predicción mensual de ventas")
-    st.caption(f"Factor de corrección ×{factor_manual:.4f} aplicado al total mensual "
-               f"({'+' if factor_manual>=1 else ''}{(factor_manual-1)*100:.1f}%). "
-               "Ajustable en el panel lateral ←")
 
-    c_mes, c_año, c_btn = st.columns([2, 2, 3])
+    c_mes, c_año, c_factor, c_btn = st.columns([2, 1, 2, 2])
     with c_mes:
-        mes_sel = st.selectbox("Mes", list(MESES_ES.keys()), index=5,   # Junio por defecto
+        mes_sel = st.selectbox("Mes", list(MESES_ES.keys()), index=5,
                                format_func=lambda m: MESES_ES[m])
     with c_año:
         año_sel = st.number_input("Año", min_value=2026, max_value=2030, value=2026, step=1)
+    with c_factor:
+        factor_manual = st.number_input(
+            "Factor corrección",
+            min_value=0.50, max_value=2.50,
+            value=st.session_state["factor_manual"],
+            step=0.01, format="%.4f",
+            help=(f"Base automática del modelo: ×{FACTOR:.4f} "
+                  f"({'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%). "
+                  "Ajusta según criterio de negocio."),
+        )
+        st.session_state["factor_manual"] = factor_manual
+        if abs(factor_manual - FACTOR) > 0.001:
+            st.caption(f"⚠️ Ajustado: {'+' if factor_manual>=1 else ''}{(factor_manual-1)*100:.1f}%"
+                       f" (modelo base: {'+' if FACTOR>=1 else ''}{(FACTOR-1)*100:.1f}%)")
+        else:
+            st.caption(f"Automático: {'+' if factor_manual>=1 else ''}{(factor_manual-1)*100:.1f}%")
     with c_btn:
         st.markdown("&nbsp;")
         run = st.button("🔮 Predecir", type="primary", use_container_width=True)
