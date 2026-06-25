@@ -131,6 +131,17 @@ metrics   = load_metrics()
 df_train  = load_training_data()
 df_valid  = load_validation_data()
 
+# Etiqueta dinámica del período de validación
+if df_valid is not None and len(df_valid) > 0:
+    _MESES_CORTOS = {1:"Ene",2:"Feb",3:"Mar",4:"Abr",5:"May",6:"Jun",
+                     7:"Jul",8:"Ago",9:"Sep",10:"Oct",11:"Nov",12:"Dic"}
+    _vd_min = df_valid["Fecha"].min()
+    _vd_max = df_valid["Fecha"].max()
+    VAL_LABEL = (f"{_vd_min.day} {_MESES_CORTOS[_vd_min.month]}"
+                 f"–{_vd_max.day} {_MESES_CORTOS[_vd_max.month]} {_vd_max.year}")
+else:
+    VAL_LABEL = "período de validación"
+
 # ── Lógica de predicción ────────────────────────────────────────────────────
 def calc_vacaciones(mes: int, dia: int, año: int) -> int:
     if mes == 12 and dia >= 26: return 1
@@ -483,7 +494,7 @@ with tab2:
         if df_valid is None:
             st.info("validacion.csv no disponible. Ejecuta el notebook (Paso 2) para generarlo.")
         else:
-            st.markdown(f"**{len(df_valid)} registros · Mayo 2–15 2026 · conjunto out-of-sample "
+            st.markdown(f"**{len(df_valid)} registros · {VAL_LABEL} · conjunto out-of-sample "
                         f"(nunca visto durante el entrenamiento)**")
 
             df_v = df_valid.copy()
@@ -498,7 +509,7 @@ with tab2:
             st.dataframe(pivot_v.style.format("${:,.0f}"), use_container_width=True)
 
             # Resumen por tipo
-            st.markdown("**Total período Mayo 2–15 por tipo**")
+            st.markdown(f"**Total período {VAL_LABEL} por tipo**")
             tot_v = df_v.groupby("Tipo Consulta")["VENTAS"].sum().reindex(TIPOS)
             c1, c2, c3, c4 = st.columns(4)
             for col, tipo in zip([c1, c2, c3], TIPOS):
@@ -509,7 +520,7 @@ with tab2:
             fig_v = px.bar(df_v, x="Fecha_str", y="VENTAS", color="Tipo Consulta",
                            color_discrete_map=COLOR_TIPOS,
                            labels={"Fecha_str":"Fecha","VENTAS":"Ventas ($)"},
-                           title="Ventas reales — Validación Mayo 2–15 2026")
+                           title=f"Ventas reales — Validación {VAL_LABEL}")
             fig_v.update_xaxes(tickangle=45)
             fig_v.update_layout(margin=dict(l=0,r=0,t=40,b=0))
             st.plotly_chart(fig_v, use_container_width=True)
@@ -567,7 +578,7 @@ with tab3:
             _sesgo_dir = "sobreestima" if sesgo is not None and sesgo > 0 else "subestima"
             st.markdown(f"""
 Estas métricas miden **qué tan bien predice el modelo** comparando sus predicciones contra
-las ventas reales del período de validación (Mayo 2–15 2026, datos que el modelo nunca vio).
+las ventas reales del período de validación ({VAL_LABEL}, datos que el modelo nunca vio).
 
 ---
 
@@ -627,7 +638,7 @@ Por eso se aplica el **factor de corrección ×{FACTOR:.3f}** al total mensual, 
             fig_sc = px.scatter(pvr, x="real", y="pred", color="tipo",
                                 color_discrete_map=COLOR_TIPOS,
                                 labels={"real":"Real ($)","pred":"Predicción ($)","tipo":"Tipo"},
-                                title="Predicho vs Real — Validación Mayo 2–15 2026")
+                                title=f"Predicho vs Real — Validación {VAL_LABEL}")
             lim = max(pvr["real"].max(), pvr["pred"].max()) * 1.05
             fig_sc.add_shape(type="line", x0=0, y0=0, x1=lim, y1=lim,
                              line=dict(color="red", dash="dash", width=1))
@@ -651,7 +662,7 @@ Por eso se aplica el **factor de corrección ×{FACTOR:.3f}** al total mensual, 
             st.info("""
 **ℹ️ Contexto para interpretar estos resultados**
 
-El período de validación (Mayo 2–15 2026) coincide con un momento en que la demanda de la clínica
+El período de validación ({VAL_LABEL}) coincide con un momento en que la demanda de la clínica
 estaba creciendo más rápido de lo que el modelo había aprendido hasta ese momento
 (el entrenamiento llegaba hasta abril 2026).
 
@@ -725,7 +736,9 @@ with tab4:
         elif es_presente:
             st.info(f"📅 Estás prediciendo el mes en curso ({MESES_ES[mes_sel]} {año_sel}).")
 
-        lag_fuente = df_train if (es_pasado or es_presente) and df_train is not None else None
+        # Combinar entrenamiento + validacion: da lags reales de mayo 2026 para predecir junio
+        _dfs_lag = [d for d in [df_train, df_valid] if d is not None]
+        lag_fuente = pd.concat(_dfs_lag, ignore_index=True) if _dfs_lag else None
 
         with st.spinner(f"Calculando {MESES_ES[mes_sel]} {año_sel}…"):
             df_pred = predecir_mes(int(mes_sel), int(año_sel), df_historico=lag_fuente)

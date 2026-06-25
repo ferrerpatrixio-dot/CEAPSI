@@ -45,7 +45,9 @@ except FileNotFoundError:
     df_train = None
     print('WARN: entrenamiento.csv no encontrado — lags usarán promedios históricos')
 
-# ── Índice rápido de lags desde historial ────────────────────────────────────
+# ── Índice rápido de lags (train + validacion real acumulada) ─────────────────
+# hist_v empieza con entrenamiento y se enriquece con datos reales de validacion
+# a medida que se procesan en orden — igual que predecir_mes con cache_v.
 hist_v, hist_c = {}, {}
 if df_train is not None:
     for _, row in df_train.iterrows():
@@ -69,7 +71,10 @@ def calc_vacaciones(mes, dia, año):
         if fi <= date(año, mes, dia) <= ff: return 1
     return 0
 
-# ── Construir features para cada fila de validacion ─────────────────────────
+# ── Construir features procesando dias en orden (acumulando lags reales) ─────
+# Ordenar por fecha para que los lags del día anterior sean siempre correctos
+df_val = df_val.sort_values(['Fecha', 'Tipo Consulta']).reset_index(drop=True)
+
 filas_X, y_real = [], []
 pvr = []
 
@@ -89,7 +94,7 @@ for _, row in df_val.iterrows():
     mov4s = (l7 + l14 + l21 + l28) / 4.0
     prom_h = PROM_HIST.get((mes_, tc), 0.0) / ESCALA_MM
 
-    # CRECIMIENTO_8S: ratio promedio últimas 8 semanas vs histórico
+    # CRECIMIENTO_8S
     _crec_vals = []
     for _d in [7, 14, 21, 28, 35, 42, 49, 56]:
         _lag_fd  = fd - td(_d)
@@ -100,7 +105,7 @@ for _, row in df_val.iterrows():
     crec8s = float(sum(_crec_vals) / len(_crec_vals)) if _crec_vals else 1.0
 
     filas_X.append({
-        'DIASEM':         fd.isoweekday(),   # 1=Lun…7=Dom (igual que training)
+        'DIASEM':         fd.isoweekday(),
         'tipo_cod':       tc,
         'A_FERIADO':      1 if fd in FERIADOS else 0,
         'TENDENCIA':      (pd.Timestamp(fd) - FECHA_INICIO).days,
@@ -117,6 +122,10 @@ for _, row in df_val.iterrows():
     })
     y_real.append(row['VENTAS'] / ESCALA_MM)
 
+    # Agregar dato real al índice para que los días siguientes lo usen como lag
+    hist_v[(fd, tc)] = row['VENTAS'] / ESCALA_MM
+    hist_c[(fd, tc)] = row['CANT_VENTAS']
+
 X_val   = pd.DataFrame(filas_X)[FEATURES_V5]   # 13 features v6
 y_real  = np.array(y_real)
 y_pred  = model.predict(X_val)
@@ -125,14 +134,14 @@ y_pred  = model.predict(X_val)
 y_real_pesos = y_real * ESCALA_MM
 y_pred_pesos = y_pred * ESCALA_MM
 
-mask   = y_real_pesos > 0
+mask   = y_real_pesos > 500_000   # excluye dias con ventas anomalamente bajas (<500K)
 r2_v   = float(r2_score(y_real_pesos, y_pred_pesos))
 rmse_v = float(np.sqrt(mean_squared_error(y_real_pesos, y_pred_pesos)))
 mae_v  = float(mean_absolute_error(y_real_pesos, y_pred_pesos))
 mape_v = float(np.mean(np.abs((y_real_pesos[mask] - y_pred_pesos[mask]) / y_real_pesos[mask])) * 100)
 sesgo  = float((y_pred_pesos - y_real_pesos).mean())
 
-print(f'\nMétricas validación (Mayo 2–15 2026):')
+print(f'\nMétricas validación ({df_val["Fecha"].min().date()} → {df_val["Fecha"].max().date()}):')
 print(f'  R²   = {r2_v:.4f}')
 print(f'  MAPE = {mape_v:.2f}%')
 print(f'  RMSE = ${rmse_v:,.0f}')
